@@ -1,0 +1,15 @@
+{
+  "name": "visualizing_data_electron",
+  "version": "1.0.0",
+  "description": "Visualizing Data With Electron",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Rashan Jibowu",
+  "license": "MIT",
+  "dependencies": {
+    "d3": "^4.11.0",
+    "electron": "^1.7.8"
+  }
+}

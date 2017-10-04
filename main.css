@@ -1,0 +1,8 @@
+/*.blend-wrapper {
+    isolation: isolate
+}
+
+.blend-target {
+    background-blend-mode: multiply;
+    mix-blend-mode: multiply;
+}*/
