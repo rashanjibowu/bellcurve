@@ -1,8 +1,62 @@
 // renderer
 
 const d3 = require('d3');
+const DataStore = require('./dataStore.js');
+
 
 // retrieve raw data
+var dataStore = new DataStore();
+
+// listen for click/change events
+var tickerElement = document.getElementById('ticker');
+var targetPriceElement = document.getElementById('targetPrice');
+var daysElement = document.getElementById('days');
+
+// when user changes ticker, retrieve/download current and historical pricing data
+// recalculate probabilities
+// update chart
+tickerElement.addEventListener('click', function(event) {
+    
+    var ticker = tickerElement.textContent;
+    console.log('Clicked on ticker %s!', ticker);
+
+    dataStore.retrieve(ticker, 'currentPrice', function(error, data) {
+
+        if (error) {
+            console.error(error);
+            return;
+        }
+
+        var split = data.split('|');
+        console.info('Price: $%0.2f | Date: %s', +split[1], split[0]);
+
+        // recalculate probabilities
+        console.log('Recalculating probabilities...');
+
+        // update chart
+        console.log('Updating chart...');
+    });    
+});
+
+// when user changes target price, recalculate probabilities
+// update chart
+targetPriceElement.addEventListener('click', function(event) {
+    // recalculate probabilities
+    console.log('Recalculating probabilities...');
+    
+    // update chart
+    console.log('Updating chart...');
+});
+
+// when user changes days, recalculate probabilities
+// update chart
+daysElement.addEventListener('click', function(event) {
+    // recalculate probabilities
+    console.log('Recalculating probabilities...');
+    
+    // update chart
+    console.log('Updating chart...');
+});
 
 // calculate inputs
 var currentPrice = 20;
