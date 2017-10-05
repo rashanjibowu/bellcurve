@@ -15,23 +15,34 @@ DataStore.prototype.download = function(ticker, type, callback) {
     console.log('Downloading %s for %s', type, ticker);      
 
     // set paths for directory and file
-    var currentPriceDirectory = path.join(this.path, ticker);
-    var currentPriceFile = path.join(currentPriceDirectory, 'currentPrice.txt');
+    var directoryPath = path.join(this.path, ticker);
+    var filePath = path.join(directoryPath, type.concat('.txt'));
     
     try {
 
+        var today = new Date();
+        let value;
+
         // retrieve data from internet
-        let currentPrice = 80;
-        let date = new Date().toISOString();
+        if (type == 'currentPrice') {
+            value = today.toISOString().concat('|', 80); 
+        } else {
+            value = [];
+            for (var i = 0; i < 365; i++) {
+                value.push(new Date(today - (1000 * 60 * 60 * 24 * i)).toISOString().concat('|', (Math.random() * 80).toFixed(2)));
+            }
+            value = value.join('\n');
+        }        
 
         console.log('Successful download');
+        console.log(value);
 
         // if the directory does not exist, we must create it
-        fs.access(currentPriceDirectory, fs.constants.W_OK, function(error) {
+        fs.access(directoryPath, fs.constants.W_OK, function(error) {
             
             if (error) {
                 console.warn('Directory does not exist. Creating it...');
-                fs.mkdir(currentPriceDirectory, function(error) {
+                fs.mkdir(directoryPath, function(error) {
                     if (error) {
                         console.error('Unable to create directory');
                         return;
@@ -42,13 +53,12 @@ DataStore.prototype.download = function(ticker, type, callback) {
             }
             
             // then we save the data to a file
-            fs.writeFile(currentPriceFile, date.concat('|', currentPrice), 'utf-8', function(error) {
+            fs.writeFile(filePath, value, 'utf-8', function(error) {
                 if (error) {
                     console.error(error);
                     callback(error);
                     return;
-                } else {
-                    console.info('%s\'s current price of %0.2f on %s has been saved to %s', ticker, currentPrice, date, currentPriceFile);
+                } else {                    
                     callback(null);
                 }
             });
@@ -66,11 +76,11 @@ DataStore.prototype.download = function(ticker, type, callback) {
 DataStore.prototype.retrieve = function(ticker, type, callback) {
 
     // set paths for directory and file
-    var currentPriceDirectory = path.join(this.path, ticker);
-    var currentPriceFile = path.join(currentPriceDirectory, 'currentPrice.txt');
+    var directoryPath = path.join(this.path, ticker);
+    var filePath = path.join(directoryPath, type.concat('.txt'));
     
     var self = this;
-    fs.readFile(currentPriceFile, 'utf-8', function(readError, data) {
+    fs.readFile(filePath, 'utf-8', function(readError, data) {
     
         // if we can't read, attempt to download
         if (readError) {
@@ -85,7 +95,7 @@ DataStore.prototype.retrieve = function(ticker, type, callback) {
                     }
 
                     // successful download, read again
-                    fs.readFile(currentPriceFile, 'utf-8', function(error, recentData) {
+                    fs.readFile(filePath, 'utf-8', function(error, recentData) {
                         if (error) {
                             console.error('Still unable to read data from disk or download data');
                             callback(error);
