@@ -1,10 +1,9 @@
-// renderer
+// renderer process
 
 const d3 = require('d3');
 const DataStore = require('./dataStore.js');
 
-
-// retrieve raw data
+// set up a data store
 var dataStore = new DataStore();
 
 // listen for click/change events
@@ -17,8 +16,9 @@ var daysElement = document.getElementById('days');
 // update chart
 tickerElement.addEventListener('click', function(event) {
     
-    var ticker = tickerElement.textContent;
-    console.log('Clicked on ticker %s!', ticker);
+    // capture the new ticker input
+    var newTicker = 'COF';
+    console.log('New ticker is %s!', newTicker);
 
     dataStore.retrieve(ticker, 'currentPrice', function(error, data) {
 
@@ -38,8 +38,7 @@ tickerElement.addEventListener('click', function(event) {
     });    
 });
 
-// when user changes target price, recalculate probabilities
-// update chart
+// when user changes target price, update analysis and chart
 targetPriceElement.addEventListener('click', function(event) {
     // recalculate probabilities
     console.log('Recalculating probabilities...');
@@ -48,8 +47,7 @@ targetPriceElement.addEventListener('click', function(event) {
     console.log('Updating chart...');
 });
 
-// when user changes days, recalculate probabilities
-// update chart
+// when user changes days, update analysis and chart
 daysElement.addEventListener('click', function(event) {
     // recalculate probabilities
     console.log('Recalculating probabilities...');
