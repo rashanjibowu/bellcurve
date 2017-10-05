@@ -156,4 +156,28 @@ DataStore.prototype.retrieve = function(ticker, type, callback) {
     });
 };
 
+// initial retrieval and analysis of data associated with the provided ticker
+// this is to be run on app load
+DataStore.prototype.initialize = function(ticker, days) {
+
+    console.log('Initializing...');
+
+    var targetPrice = 95;
+    var currentPrice = 80;
+    var meanReturnAnnual = 0.05;
+    var historicalVolatility = 0.14;
+    var impliedVolatility = 0.35;
+
+    return {
+        ticker: ticker,
+        targetPrice: targetPrice,
+        currentPrice: currentPrice,
+        priceHistory: null,
+        days: days,
+        meanReturnAnnual: meanReturnAnnual,
+        historicalVolatility: historicalVolatility,
+        impliedVolatility: impliedVolatility
+    };
+};
+
 module.exports = DataStore;
