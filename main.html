@@ -6,8 +6,13 @@
 <body>
     <h1>What are the chances that ...?</h1>
     <div>
-        <span id="ticker">COF</span> reaches $<span id="targetPrice">80</span> in <span id="days">30</span> days
+        <select id='ticker' name='ticker'>
+            <option value='COF' selected>COF</option>
+            <option value='MS'>MS</option>
+            <option value='CSCO'>CSCO</option>
+        </select> reaches $<input id='targetPrice' type='number' name='targetPrice' value='80' placeholder='80' min='1' step='0.25' /> in <input id='days' type='number' value='30' placeholder='30' min='1' /> days
     </div>
+    <p id='chance'>15%</p>
     <svg width = '400', height = '300'></svg>
     <script src="renderer.js"></script>
 </body>
