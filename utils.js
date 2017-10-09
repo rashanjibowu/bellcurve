@@ -1,5 +1,10 @@
 // Utility functions
 
+var jStat = require('jStat').jStat;
+var math = require('mathjs');
+
+const TRADING_DAYS_PER_YEAR = 252;
+
 // calculate the gaussian y value
 // what's the probability that x is from this population
 function gaussian(x, mean, sigma) {

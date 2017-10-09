@@ -4,6 +4,9 @@
 const electron = require('electron');
 const path = require('path');
 const fs = require('fs');
+const math = require('mathjs');
+const utils = require('./utils.js');
+const request = require('request');
 
 function DataStore() {
 

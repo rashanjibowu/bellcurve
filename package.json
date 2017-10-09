@@ -10,6 +10,9 @@
   "license": "MIT",
   "dependencies": {
     "d3": "^4.11.0",
-    "electron": "^1.7.8"
+    "electron": "^1.7.8",
+    "jStat": "^1.7.0",
+    "mathjs": "^3.16.4",
+    "request": "^2.83.0"
   }
 }
