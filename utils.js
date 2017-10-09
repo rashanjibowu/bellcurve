@@ -28,12 +28,12 @@ module.exports = {
         return [min, max];
     },
 
-    returnDistribution: function(mean, sigma, days) {
-        // generate 1000 observations over 3 standard deviations
+    returnDistribution: function(mean, sigma, days) {        
     
         // mean is assumed to be an annualized return
         // we need to scale the return to reflect the number of days provided
-        mean = ((1 + mean) ^ (days / 365)) - 1
+        mean = Math.pow(1 + mean, days / 365) - 1;
+        mean = 0;
     
         // sigma is assumed to be an annualized volatility
         // we need to scale the volatility to reflect the number of days provided
@@ -47,7 +47,7 @@ module.exports = {
         for (var i = minX; i <= maxX; i = i + incr) {        
     
             data.push({
-                probabilityDensity: gaussian(i, mean, sigma),
+                probabilityDensity: jStat.normal.pdf(i, mean, sigma),
                 observation: i
             });
         }
