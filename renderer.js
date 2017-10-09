@@ -162,16 +162,20 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
     var xExtent_HV = d3.extent(data_HV, function(d) { return d.price; });
     var yExtent_HV = d3.extent(data_HV, function(d) { return d.probabilityDensity; });
 
-    var xExtent_IV = d3.extent(data_IV, function(d) { return d.price; });
-    var yExtent_IV = d3.extent(data_IV, function(d) { return d.probabilityDensity; });
+    //var xExtent_IV = d3.extent(data_IV, function(d) { return d.price; });
+    //var yExtent_IV = d3.extent(data_IV, function(d) { return d.probabilityDensity; });
 
     var xExtent = [];
-    xExtent[0] = Math.min(xExtent_HV[0], xExtent_IV[0]);
-    xExtent[1] = Math.max(xExtent_HV[1], xExtent_IV[1]);
+    //xExtent[0] = Math.min(xExtent_HV[0], xExtent_IV[0]);
+    xExtent[0] = xExtent_HV[0];
+    //xExtent[1] = Math.max(xExtent_HV[1], xExtent_IV[1]);
+    xExtent[1] = xExtent_HV[1];
 
     var yExtent = [];
-    yExtent[0] = Math.min(yExtent_HV[0], yExtent_IV[0]);
-    yExtent[1] = Math.max(yExtent_HV[1], yExtent_IV[1]);
+    //yExtent[0] = Math.min(yExtent_HV[0], yExtent_IV[0]);
+    yExtent[0] = yExtent_HV[0];
+    //yExtent[1] = Math.max(yExtent_HV[1], yExtent_IV[1]);
+    yExtent[1] = yExtent_HV[1];
 
     var xScale = d3.scaleLinear().range([0, width]);
     var yScale = d3.scaleLinear().range([height, 0]);    
@@ -230,15 +234,15 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
         .style('mix-blend-mode', mixBlendMode)
         .attr("d", area);
 
-    areaGroups.append("path")
+    /*areaGroups.append("path")
         .datum(data_IV)
         .attr("fill", "#b2df8a")
         .style('opacity', opacity)
         .style('mix-blend-mode', mixBlendMode)
-        .attr("d", area);
+        .attr("d", area);*/
 
     // draw the lines
-    chart.append("path")
+    /*chart.append("path")
         .datum(data_IV)
         .attr("fill", "none")
         .attr("stroke-linejoin", "round")
@@ -246,7 +250,7 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
         .attr("stroke-width", 1.5)
         .attr('stroke', '#33a02c')
         .classed('chart', true)
-        .attr("d", line);
+        .attr("d", line);*/
 
     chart.append("path")
         .datum(data_HV)
@@ -281,7 +285,7 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
         .attr('fill', 'none');
   
     // draw the expected move lines
-    expectedMove_IV.concat(expectedMove_HV).forEach(function(value, index) {
+    expectedMove_HV.forEach(function(value, index) {
         chart.append('line')
             .attr('x1', xScale(value))
             .attr('x2', xScale(value))
@@ -291,7 +295,7 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
             .attr('stroke-width', 1)
             .attr('stroke-dasharray', '6, 4')
             .attr('stroke', function() {
-                if (index < 2) return '#33a02c';
+                //if (index < 2) return '#33a02c';
                 return '#1f78b4';
             })
             .attr('fill', 'none');

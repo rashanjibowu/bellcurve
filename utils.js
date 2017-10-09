@@ -60,7 +60,7 @@ module.exports = {
     },
 
     impliedVolatility: function(optionChain, currentPrice, dividendRate, interestRate) {
-        return 0.35;
+        return null;
     },
 
     analyze: function(currentPrice, days, priceHistory) {
@@ -72,15 +72,15 @@ module.exports = {
         var historicalVolatility = this.historicalVolatility(priceHistory);
 
         // calculate implied volatility
-        var impliedVolatility = this.impliedVolatility(null, currentPrice, null, null);
+        //var impliedVolatility = this.impliedVolatility(null, currentPrice, null, null);
 
         // returns are normally distributed
-        var distributionOfReturns_HV = this.returnDistribution(meanReturnAnnual, historicalVolatility, days);
-        var distributionOfReturns_IV = this.returnDistribution(meanReturnAnnual, impliedVolatility, days);
+        var distributionOfReturns_HV = this.returnDistribution(meanAnnualReturn, stdAnnualReturn, days);
+        //var distributionOfReturns_IV = this.returnDistribution(meanReturnAnnual, impliedVolatility, days);
 
         // prices are derived from the returns
         var data_HV = this.priceDistribution(currentPrice, distributionOfReturns_HV);
-        var data_IV = this.priceDistribution(currentPrice, distributionOfReturns_IV);
+        //var data_IV = this.priceDistribution(currentPrice, distributionOfReturns_IV);
 
         // calculate expected moves
         var expectedMove_IV = this.expectedMove(currentPrice, impliedVolatility, days);
@@ -88,7 +88,7 @@ module.exports = {
 
         return {
             priceDistributionHV: data_HV,
-            priceDistributionIV: data_IV,
+            priceDistributionIV: null,
             expectedMoveHV: expectedMove_HV,
             expectedMoveIV: expectedMove_IV
         };
