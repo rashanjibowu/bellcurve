@@ -85,8 +85,46 @@ module.exports = {
         });
     },
 
-    historicalVolatility: function(prices) {
-        return 0.25;
+    /**
+     * Returns the mean of daily returns
+     * @param   {array} returnsHistory  Array of returns
+     * @return  {number}                Mean daily return
+     */
+    meanReturn: function(returnsHistory) {
+        return math.mean(returnsHistory.map(function(value) {
+            return value.return;
+        }));
+    },
+
+    /**
+     * Converts daily return to periodic return over the given number of days
+     * @param   {number}    dailyReturn Daily return
+     * @param   {number}    days        Number of days represented by figure
+     * @return  {number}                Periodic return
+     */
+    scaleReturn: function(dailyReturn, days) {
+        return Math.pow(dailyReturn + 1, days) - 1;   
+    },
+
+    /**
+     * Returns the standard deviation of daily returns
+     * @param   {array} returnsHistory  Array of returns
+     * @return  {number}                Standard deviation of daily returns
+     */
+    stdReturn: function(returnsHistory) {
+         return math.std(returnsHistory.map(function(value) {
+            return value.return;
+        }));
+    },
+
+    /**
+     * Converts daily volatility to periodic volatility over the given number of days
+     * @param   {number}    dailyVolatility Daily volatility
+     * @param   {number}    days            Number of days represented by figure
+     * @return  {number}                    Periodic volatility
+     */
+    scaleVolatility: function(dailyVolatility, days) {
+        return dailyVolatility * Math.sqrt(days);
     },
 
     impliedVolatility: function(optionChain, currentPrice, dividendRate, interestRate) {
