@@ -55,7 +55,7 @@ DataStore.prototype.download = function(ticker, type, callback) {
             }
             
             // then we save the data to a file
-            fs.writeFile(filePath, value, 'utf-8', function(error) {
+            fs.writeFile(filePath, body, 'utf-8', function(error) {
                 if (error) {
                     console.error(error);
                     callback(error);
@@ -65,9 +65,46 @@ DataStore.prototype.download = function(ticker, type, callback) {
                 }
             });
         });
-    } catch (error) {
-        callback(error);
-    }
+
+        var priceHistory = self.parsePriceHistory(body)          
+
+        callback(null, priceHistory);
+    });        
+};
+
+// covert stored csv format into array of objects
+DataStore.prototype.parsePriceHistory = function(rawData) {
+
+    // parse the data
+    console.log('Parsing the data ...');
+    var lines = rawData.split('\n');
+
+    var priceHistory = lines.map(function(line, index) {
+        if (index == 0) {
+            return {};
+        }
+
+        var values = line.split(',');
+        var date = new Date(values[0]);
+        return {
+            timestamp: Date.parse(values[0]),
+            open: +values[1],
+            high: +values[2],
+            low: +values[3],
+            close: +values[4],
+            volume: +values[5]
+        }
+    }); 
+
+    // remove header
+    priceHistory.shift();
+
+    // remove last element if it's functionally empty
+    if (!priceHistory[(priceHistory.length - 1)].timestamp) {
+        priceHistory.pop();
+    }    
+    
+    return priceHistory;
 };
 
 // retrieve data from disk
@@ -90,23 +127,24 @@ DataStore.prototype.retrieve = function(ticker, type, callback) {
         if (readError) {
             console.warn('Can\'t read. Attempting to download...');
 
-                    if (downloadError) {
-                        console.error('Unable to read data from disk or download data');
-                        callback(downloadError);
+            self.download(ticker, type, function(downloadError) {
+
+                if (downloadError) {
+                    console.error('Unable to read data from disk or download data');
+                    callback(downloadError);
+                    return;
+                }
+
+                // successful download, read again
+                fs.readFile(filePath, 'utf-8', function(error, recentData) {
+                    if (error) {
+                        console.error('Still unable to read data from disk or download data');
+                        callback(error);
                         return;
                     }
 
-                    // successful download, read again
-                    fs.readFile(filePath, 'utf-8', function(error, recentData) {
-                        if (error) {
-                            console.error('Still unable to read data from disk or download data');
-                            callback(error);
-                            return;
-                        }
-
-                        console.log('We found recently downloaded data!');                        
-                        callback(null, recentData);
-                    });
+                    console.log('We found recently downloaded data!');                        
+                    callback(null, self.parsePriceHistory(recentData));
                 });
             });            
         } else {
@@ -115,37 +153,33 @@ DataStore.prototype.retrieve = function(ticker, type, callback) {
 
             // if data is old, re-download
             const MILLIS_PER_DAY = 1000 * 60 * 60 * 24;
-            var date = data.split('|')[0];
-            var now = new Date();
-            if (date == '' || new Date(date) < (now - MILLIS_PER_DAY)) {
-                console.log('But, the data looks old. We need to download fresh data...');
+            data = self.parsePriceHistory(data);
 
-                try {
-                    self.download(ticker, type, function(downloadError) {
-    
-                        if (downloadError) {
-                            console.error('Unable to read data from disk or download data');
-                            callback(downloadError);
+            var date = data[0].timestamp;
+            var now = new Date();
+            if (new Date(date) < (now - MILLIS_PER_DAY)) {
+                console.log('But, the data looks old. We need to download fresh data...');
+                
+                self.download(ticker, type, function(downloadError) {
+
+                    if (downloadError) {
+                        console.warn('Unable to read data from disk or download data. Using old data');
+                        callback(null, data);
+                        return;
+                    }
+
+                    // successful download, read again
+                    fs.readFile(filePath, 'utf-8', function(error, recentData) {
+                        if (error) {
+                            console.warn('Still unable to read data from disk or download data. Using old data');
+                            callback(null, data);
                             return;
                         }
-    
-                        // successful download, read again
-                        fs.readFile(currentPriceFile, 'utf-8', function(error, recentData) {
-                            if (error) {
-                                console.error('Still unable to read data from disk or download data');
-                                callback(error);
-                                return;
-                            }
-    
-                            console.log('We found recently downloaded data!');
-                            callback(null, recentData);
-                        });
+
+                        console.log('We found recently downloaded data!');
+                        callback(null, self.parsePriceHistory(recentData));
                     });
-                } catch (error) {
-                    console.error('Unable to read data from disk or download data');
-                    callback(error);
-                    return;
-                }
+                });
             } else {
                 callback(null, data);
             }            
@@ -155,26 +189,51 @@ DataStore.prototype.retrieve = function(ticker, type, callback) {
 
 // initial retrieval and analysis of data associated with the provided ticker
 // this is to be run on app load
-DataStore.prototype.initialize = function(ticker, days) {
+DataStore.prototype.initialize = function(ticker, days, callback) {
 
-    console.log('Initializing...');
+    var impliedVolatility = null;
+    const TRADING_DAYS_PER_YEAR = 252;
+    const INITIAL_TARGET_RETURN = 0.10;
 
-    var targetPrice = 95;
-    var currentPrice = 80;
-    var meanReturnAnnual = 0.05;
-    var historicalVolatility = 0.14;
-    var impliedVolatility = 0.35;
+    this.retrieve(ticker, 'priceHistory', function(error, data) {
 
-    return {
-        ticker: ticker,
-        targetPrice: targetPrice,
-        currentPrice: currentPrice,
-        priceHistory: null,
-        days: days,
-        meanReturnAnnual: meanReturnAnnual,
-        historicalVolatility: historicalVolatility,
-        impliedVolatility: impliedVolatility
-    };
+        if (error) {
+            console.error(error);
+            return;
+        }
+
+        let priceHistory = data;
+        
+        // assume that we are starting from a price history
+        // calculate daily returns and volatility
+        var returnsHistory = utils.returnHistory(priceHistory);
+    
+        // calculate mean and standard deviation of returns
+        var meanDailyReturn = utils.meanReturn(returnsHistory);
+        var stdDailyReturn = utils.stdReturn(returnsHistory);
+    
+        // since the history of returns is daily, they must be converted into annual
+        // annualize returns    
+        var meanAnnualReturn = utils.scaleReturn(meanDailyReturn, TRADING_DAYS_PER_YEAR);
+    
+        // annualize volatility
+        var stdAnnualReturn = utils.scaleVolatility(stdDailyReturn, TRADING_DAYS_PER_YEAR);    
+    
+        var initialState = {
+            ticker: ticker,
+            targetPrice: priceHistory[0].close * (1 + INITIAL_TARGET_RETURN),
+            currentPrice: priceHistory[0].close,
+            priceHistory: priceHistory,
+            days: days,
+            meanAnnualReturn: meanAnnualReturn,
+            stdAnnualReturn: stdAnnualReturn,
+            impliedVolatility: impliedVolatility,
+            meanDailyReturn: meanDailyReturn,
+            stdDailyReturn: stdDailyReturn
+        };
+    
+        callback(null, initialState);
+    });
 };
 
 module.exports = DataStore;
