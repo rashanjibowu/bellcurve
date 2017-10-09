@@ -63,8 +63,26 @@ module.exports = {
         });
     },
 
-    meanReturn: function(prices) {
-        return 0.05;
+    returnHistory: function(priceHistory) {  
+
+        // sort: make sure we are in ascending time order
+        priceHistory = priceHistory.sort(function(a, b) {
+            return b.timestamp - a.timestamp
+        });
+
+        return priceHistory.map(function(value, index, array) {
+            var r = {};
+            r.date = new Date(value.timestamp).toISOString();
+
+            if (index == 0) {
+                r.return = 0
+            } else {
+                // current / previous - 1
+                r.return = array[index].close / array[(index - 1)].close - 1;
+            }
+
+            return r;
+        });
     },
 
     historicalVolatility: function(prices) {
