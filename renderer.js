@@ -10,8 +10,9 @@ var dataStore = new DataStore();
 // set initial values
 const TICKER = 'COF';
 const DAYS = 30;
-let data = dataStore.initialize(TICKER, DAYS);
-let analysis = utils.analyze(data.currentPrice, data.days, data.priceHistory);
+const INITIAL_TARGET_RETURN = 0.10;
+let data;
+let analysis;
 
 // set up chart
 var chart = setUpChart();
@@ -101,7 +102,13 @@ targetPriceElement.addEventListener('input', function(event) {
     console.log('targetPrice changed to %s', targetPriceElement.value);
 
     // cache the new target price
-    data.targetPrice = (Math.random() * 20 - 10) + +targetPriceElement.dataset.targetPrice;
+    data.targetPrice = +targetPriceElement.value;
+    console.log(data);
+
+    // update and cache analysis
+    analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
+    console.log(analysis);
+    updateProbability(probElement, analysis.probabilityOfOutcome);
 
     drawChart(
         chart, 
@@ -123,9 +130,10 @@ daysElement.addEventListener('input', function(event) {
     data.days = +daysElement.value;
     console.log(data);
 
-    // update the new days input in UI
-    daysElement.dataset.days = data.days;
-    daysElement.textContent = data.days;
+    // update and cache analysis
+    analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
+    console.log(analysis);
+    updateProbability(probElement, analysis.probabilityOfOutcome);
 
     // update chart
     drawChart(
@@ -306,4 +314,8 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
             })
             .attr('fill', 'none');
     });
+}
+
+function updateProbability(element, probability) {
+    element.textContent = (probability * 100).toFixed(1).concat('%');
 }
