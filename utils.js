@@ -131,13 +131,43 @@ module.exports = {
         return null;
     },
 
-    analyze: function(currentPrice, days, priceHistory) {
+    impliedReturn: function(currentPrice, targetPrice) {
+        return targetPrice / currentPrice - 1;
+    },
+
+    // calculate probability of reaching a certain price
+    // use the cumulative probability distribution function
+    probabilityOfOutcome: function(currentPrice, targetPrice, mean, volatility) {
+        // find the return implied by the target price
+        var impliedReturn = this.impliedReturn(currentPrice, targetPrice);
+
+        // use cumulative probability function to determine the probability that 
+        // the return will take on the implied return value
+        var prob = jStat.normal.cdf(impliedReturn, mean, volatility);
+
+        if (impliedReturn > mean) {
+            return 1 - prob;
+        }
+
+        return prob;
+    },
+
+    analyze: function(currentPrice, targetPrice, days, priceHistory) {
+
+        const TRADING_DAYS_PER_YEAR = 252;
+
+        // calculate return history
+        var returnsHistory = this.returnHistory(priceHistory);
 
         // calculate mean return
-        var meanReturnAnnual = this.meanReturn(priceHistory);
+        var meanDailyReturn = this.meanReturn(returnsHistory);
+        var meanAnnualReturn = this.scaleReturn(meanDailyReturn, TRADING_DAYS_PER_YEAR);
+        var meanPeriodicReturn = this.scaleReturn(meanDailyReturn, days);
 
         // calculate historical volatility
-        var historicalVolatility = this.historicalVolatility(priceHistory);
+        var stdDailyReturn = this.stdReturn(returnsHistory);
+        var stdAnnualReturn = this.scaleVolatility(stdDailyReturn, TRADING_DAYS_PER_YEAR);
+        var stdPeriodicReturn = this.scaleVolatility(stdDailyReturn, days);
 
         // calculate implied volatility
         //var impliedVolatility = this.impliedVolatility(null, currentPrice, null, null);
@@ -151,14 +181,22 @@ module.exports = {
         //var data_IV = this.priceDistribution(currentPrice, distributionOfReturns_IV);
 
         // calculate expected moves
-        var expectedMove_IV = this.expectedMove(currentPrice, impliedVolatility, days);
-        var expectedMove_HV = this.expectedMove(currentPrice, historicalVolatility, days);
+        //var expectedMove_IV = this.expectedMove(currentPrice, impliedVolatility, days);
+        var expectedMove_HV = this.expectedMove(currentPrice, stdAnnualReturn, days);
+
+        // prob of outcome        
+        var pos = this.probabilityOfOutcome(currentPrice, targetPrice, meanPeriodicReturn, stdPeriodicReturn);
 
         return {
             priceDistributionHV: data_HV,
             priceDistributionIV: null,
             expectedMoveHV: expectedMove_HV,
-            expectedMoveIV: expectedMove_IV
+            expectedMoveIV: null,
+            probabilityOfOutcome: pos
         };
+    },
+
+    updateTargetPrice: function(currentPrice, targetReturn) {
+        return currentPrice * (1 + targetReturn);
     }
 };
