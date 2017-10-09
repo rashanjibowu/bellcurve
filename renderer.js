@@ -16,87 +16,93 @@ let analysis = utils.analyze(data.currentPrice, data.days, data.priceHistory);
 // set up chart
 var chart = setUpChart();
 
-drawChart(
-    chart, 
-    data.currentPrice, 
-    data.targetPrice, 
-    analysis.priceDistributionHV, 
-    analysis.priceDistributionIV, 
-    analysis.expectedMoveHV, 
-    analysis.expectedMoveIV
-);
-
-// attach data to DOM Elements (not the DOM itself!)
 var tickerElement = document.getElementById('ticker');
-tickerElement.dataset.ticker = data.ticker;
-
 var targetPriceElement = document.getElementById('targetPrice');
-targetPriceElement.dataset.targetPrice = data.targetPrice;
-
 var daysElement = document.getElementById('days');
-daysElement.dataset.days = data.days;
+var probElement = document.getElementById('chance');
+
+dataStore.initialize(TICKER, DAYS, function(error, initialState) {
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    data = initialState;
+    analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
+    updateProbability(probElement, analysis.probabilityOfOutcome);
+
+    console.log(data);
+    console.log(analysis);
+
+    // update the target price
+    targetPriceElement.value = Math.round(data.targetPrice);        
+
+    drawChart(
+        chart, 
+        data.currentPrice, 
+        data.targetPrice, 
+        analysis.priceDistributionHV, 
+        analysis.priceDistributionIV, 
+        analysis.expectedMoveHV, 
+        analysis.expectedMoveIV
+    );
+});
 
 // when user changes ticker, retrieve/download current and historical pricing data
 // recalculate probabilities
 // update chart
-tickerElement.addEventListener('click', function(event) {
+tickerElement.addEventListener('change', function(event) {
+    event.preventDefault();
     
     // capture the new ticker input
-    var newTicker = 'COF';
+    var newTicker = tickerElement.value;
     console.log('New ticker is %s!', newTicker);
 
-    // retrieve/download current pricing and historical pricing
-    dataStore.retrieve(newTicker, 'currentPrice', function(priceError, priceData) {
+    dataStore.retrieve(newTicker, 'priceHistory', function(priceHistoryError, priceHistoryData) {
 
-        if (priceError) {
-            console.error(priceError);
+        if (priceHistoryError) {
+            console.error(priceHistoryError);
             return;
-        }        
+        }
 
-        dataStore.retrieve(newTicker, 'priceHistory', function(priceHistoryError, priceHistoryData) {
+        // cache updated raw data and input        
+        data.currentPrice = priceHistoryData[0].close;
+        data.ticker = newTicker;
+        data.priceHistory = priceHistoryData;
 
-            if (priceHistoryError) {
-                console.error(priceHistoryError);
-                return;
-            }
+        console.log(data);
 
-            // cache updated raw data and input
-            data.priceHistory = priceHistoryData;
+        var newTargetPrice = Math.round(utils.updateTargetPrice(data.currentPrice, INITIAL_TARGET_RETURN));
+        targetPriceElement.value = newTargetPrice;
+        data.targetPrice = newTargetPrice;
 
-            var split = priceData.split('|');        
-            data.currentPrice = +split[1];
-            console.info('Price: $%0.2f | Date: %s', data.currentPrice, split[0]);
+        // update and cache analysis
+        analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
+        console.log(analysis);
+        updateProbability(probElement, analysis.probabilityOfOutcome);
 
-            data.ticker = newTicker;
-
-            // update and cache analysis
-            analysis = utils.analyze(data.currentPrice, data.days, data.priceHistory);
-
-            // update chart
-            drawChart(
-                chart, 
-                data.currentPrice, 
-                data.targetPrice, 
-                analysis.priceDistributionHV, 
-                analysis.priceDistributionIV, 
-                analysis.expectedMoveHV, 
-                analysis.expectedMoveIV
-            );
-        });        
+        // update chart
+        drawChart(
+            chart, 
+            data.currentPrice, 
+            data.targetPrice, 
+            analysis.priceDistributionHV, 
+            analysis.priceDistributionIV, 
+            analysis.expectedMoveHV, 
+            analysis.expectedMoveIV
+        );     
     });    
 });
 
 // when user changes target price, update analysis and chart
-targetPriceElement.addEventListener('click', function(event) {
+targetPriceElement.addEventListener('input', function(event) {
+
+    console.log('targetPrice changed to %s', targetPriceElement.value);
 
     // cache the new target price
     data.targetPrice = (Math.random() * 20 - 10) + +targetPriceElement.dataset.targetPrice;
 
-    // update the new target price in UI
-    targetPriceElement.dataset.targetPrice = data.targetPrice;
-    targetPriceElement.textContent = (+targetPriceElement.dataset.targetPrice).toFixed(2);
-   
-    // no need to update analysis, just update chart
     drawChart(
         chart, 
         data.currentPrice, 
@@ -109,18 +115,18 @@ targetPriceElement.addEventListener('click', function(event) {
 });
 
 // when user changes days, update analysis and chart
-daysElement.addEventListener('click', function(event) {
+daysElement.addEventListener('input', function(event) {
+
+    console.log('days changed to %s', daysElement.value);
 
     // cache the new days input
-    data.days = Math.round((Math.random() * 59) + 1);
+    data.days = +daysElement.value;
+    console.log(data);
 
     // update the new days input in UI
     daysElement.dataset.days = data.days;
     daysElement.textContent = data.days;
 
-    // update analysis
-    analysis = utils.analyze(data.currentPrice, data.days, data.priceHistory);
-    
     // update chart
     drawChart(
         chart, 

@@ -11,6 +11,7 @@ function DataStore() {
 }
 
 // download data and save to disk
+// there is no difference between downloading the current price and a price history
 DataStore.prototype.download = function(ticker, type, callback) {
     console.log('Downloading %s for %s', type, ticker);      
 
@@ -18,28 +19,26 @@ DataStore.prototype.download = function(ticker, type, callback) {
     var directoryPath = path.join(this.path, ticker);
     var filePath = path.join(directoryPath, type.concat('.txt'));
     
-    try {
+    var resourceURL = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=MSFT&apikey=demo&datatype=csv';
+    var self = this;
 
-        var today = new Date();
-        let value;
+    request(resourceURL, function(error, response, body) {
+        if (error) {
+            callback(error);
+            return;
+        }
 
-        // retrieve data from internet
-        if (type == 'currentPrice') {
-            value = today.toISOString().concat('|', 80); 
-        } else {
-            value = [];
-            for (var i = 0; i < 365; i++) {
-                value.push(new Date(today - (1000 * 60 * 60 * 24 * i)).toISOString().concat('|', (Math.random() * 80).toFixed(2)));
-            }
-            value = value.join('\n');
-        }        
+        if (response.statusCode != 200) {
+            callback('Error: '.concat(response.statusCode));
+            return;
+        }
 
-        console.log('Successful download');
-        console.log(value);
+        console.log('Successful download');        
 
-        // if the directory does not exist, we must create it
+        // check for the existence of the destination directory
         fs.access(directoryPath, fs.constants.W_OK, function(error) {
-            
+        
+            // if the directory does not exist, we must create it
             if (error) {
                 console.warn('Directory does not exist. Creating it...');
                 fs.mkdir(directoryPath, function(error) {
@@ -75,6 +74,8 @@ DataStore.prototype.download = function(ticker, type, callback) {
 // for current price, old means greater than 1 day (or as specified in app)
 DataStore.prototype.retrieve = function(ticker, type, callback) {
 
+    console.log('Trying to retrieve %s', type);
+
     // set paths for directory and file
     var directoryPath = path.join(this.path, ticker);
     var filePath = path.join(directoryPath, type.concat('.txt'));
@@ -85,8 +86,6 @@ DataStore.prototype.retrieve = function(ticker, type, callback) {
         // if we can't read, attempt to download
         if (readError) {
             console.warn('Can\'t read. Attempting to download...');
-            try {
-                self.download(ticker, type, function(downloadError) {
 
                     if (downloadError) {
                         console.error('Unable to read data from disk or download data');
@@ -106,15 +105,10 @@ DataStore.prototype.retrieve = function(ticker, type, callback) {
                         callback(null, recentData);
                     });
                 });
-            } catch (error) {
-                console.error('Unable to read data from disk or download data');
-                callback(error);
-                return;
-            }
+            });            
         } else {
             // we found the data
             console.log('We found a saved version!');
-            console.log(data);
 
             // if data is old, re-download
             const MILLIS_PER_DAY = 1000 * 60 * 60 * 24;
