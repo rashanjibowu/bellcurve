@@ -15,9 +15,16 @@ function gaussian(x, mean, sigma) {
 
 module.exports = {
 
-    expectedMove: function(currentPrice, volatility, days) {
-        var min = currentPrice - currentPrice * volatility * Math.sqrt(days / 365);
-        var max = currentPrice + currentPrice * volatility * Math.sqrt(days / 365);
+    /**
+     * Returns the 1 standard deviation move over the given number of days
+     * @param   {number}    currentPrice    Current price of stock
+     * @param   {number}    dailyVolatility Standard deviation of annual returns
+     * @param   {number}    days            Number of days to consider
+     * @return  [{number}]                  Two-element array containing the expected move
+     */
+    expectedMove: function(currentPrice, annualVolatility, days) {
+        var min = currentPrice - currentPrice * annualVolatility * Math.sqrt(days / TRADING_DAYS_PER_YEAR);
+        var max = currentPrice + currentPrice * annualVolatility * Math.sqrt(days / TRADING_DAYS_PER_YEAR);
         return [min, max];
     },
 
