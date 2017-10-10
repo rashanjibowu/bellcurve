@@ -154,8 +154,6 @@ module.exports = {
 
     analyze: function(currentPrice, targetPrice, days, priceHistory) {
 
-        const TRADING_DAYS_PER_YEAR = 252;
-
         // calculate return history
         var returnsHistory = this.returnHistory(priceHistory);
 
