@@ -183,7 +183,7 @@ module.exports = {
         var expectedMove_HV = this.expectedMove(currentPrice, stdAnnualReturn, days);
 
         // prob of outcome        
-        var pos = this.probabilityOfOutcome(currentPrice, targetPrice, meanPeriodicReturn, stdPeriodicReturn);
+        var pos = this.probabilityOfOutcome(currentPrice, targetPrice, 0, stdPeriodicReturn);
 
         return {
             priceDistributionHV: data_HV,
