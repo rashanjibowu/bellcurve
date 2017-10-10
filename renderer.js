@@ -3,7 +3,7 @@
 const d3 = require('d3');
 const DataStore = require('./dataStore.js');
 const utils = require('./utils.js');
-
+ 
 // set up a data store
 var dataStore = new DataStore();
 
@@ -17,11 +17,13 @@ let analysis;
 // set up chart
 var chart = setUpChart();
 
+// obtain references to key UI elements
 var tickerElement = document.getElementById('ticker');
 var targetPriceElement = document.getElementById('targetPrice');
 var daysElement = document.getElementById('days');
 var probElement = document.getElementById('chance');
 
+// initialize the UI with initial values
 dataStore.initialize(TICKER, DAYS, function(error, initialState) {
 
     if (error) {
@@ -32,9 +34,6 @@ dataStore.initialize(TICKER, DAYS, function(error, initialState) {
     data = initialState;
     analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
     updateProbability(probElement, analysis.probabilityOfOutcome);
-
-    console.log(data);
-    console.log(analysis);
 
     // update the target price
     targetPriceElement.value = Math.round(data.targetPrice);        
@@ -58,7 +57,6 @@ tickerElement.addEventListener('change', function(event) {
     
     // capture the new ticker input
     var newTicker = tickerElement.value;
-    console.log('New ticker is %s!', newTicker);
 
     dataStore.retrieve(newTicker, 'priceHistory', function(priceHistoryError, priceHistoryData) {
 
@@ -72,15 +70,13 @@ tickerElement.addEventListener('change', function(event) {
         data.ticker = newTicker;
         data.priceHistory = priceHistoryData;
 
-        console.log(data);
-
         var newTargetPrice = Math.round(utils.updateTargetPrice(data.currentPrice, INITIAL_TARGET_RETURN));
         targetPriceElement.value = newTargetPrice;
         data.targetPrice = newTargetPrice;
 
         // update and cache analysis
         analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
-        console.log(analysis);
+
         updateProbability(probElement, analysis.probabilityOfOutcome);
 
         // update chart
@@ -99,15 +95,12 @@ tickerElement.addEventListener('change', function(event) {
 // when user changes target price, update analysis and chart
 targetPriceElement.addEventListener('input', function(event) {
 
-    console.log('targetPrice changed to %s', targetPriceElement.value);
-
     // cache the new target price
     data.targetPrice = +targetPriceElement.value;
-    console.log(data);
 
     // update and cache analysis
     analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
-    console.log(analysis);
+
     updateProbability(probElement, analysis.probabilityOfOutcome);
 
     drawChart(
@@ -124,15 +117,12 @@ targetPriceElement.addEventListener('input', function(event) {
 // when user changes days, update analysis and chart
 daysElement.addEventListener('input', function(event) {
 
-    console.log('days changed to %s', daysElement.value);
-
     // cache the new days input
     data.days = +daysElement.value;
-    console.log(data);
 
     // update and cache analysis
     analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
-    console.log(analysis);
+
     updateProbability(probElement, analysis.probabilityOfOutcome);
 
     // update chart
@@ -147,7 +137,10 @@ daysElement.addEventListener('input', function(event) {
     );
 });
 
-// set up chart
+/**
+ * Initializes an SVG chart object for display and manipulation
+ * @return  {object}    An object that includes a reference to a chart object as well its width and height
+ */
 function setUpChart() {
     var margin = { top: 20, right: 20, bottom: 20, left: 40 };
     var svg = d3.select('svg');
@@ -165,7 +158,17 @@ function setUpChart() {
     };
 }
 
-// draw the chart
+/**
+ * Updates the chart object with graphical display data generated from provided inputs
+ * @param {object} chart Reference to the chart object being drawn
+ * @param {num} currentPrice Stock's current price
+ * @param {number} targetPrice Desired price of the stock
+ * @param {object} data_HV Description of distribution based on historical volatility
+ * @param {object} data_IV Description of distribution based on implied volatility
+ * @param [{number}] expectedMove_HV 1 standard deviation move based on historical volatility
+ * @param [{number}] expectedMove_IV 1 standard deviation move based on implied volatility
+ * @return  {void}
+ */
 function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedMove_HV, expectedMove_IV) {
 
     var height = chart.height;
@@ -316,6 +319,12 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
     });
 }
 
+/**
+ * Updates the UI with the new probability of achieving the desired outcome
+ * @param   {object}    element Reference to the HTMLElement containing the probability output
+ * @param   {number}    probability Probability of achieving the desired outcome
+ * @return  {void}
+ */
 function updateProbability(element, probability) {
     element.textContent = (probability * 100).toFixed(1).concat('%');
 }
