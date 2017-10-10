@@ -10,22 +10,29 @@ const request = require('request');
 const dotenv = require('dotenv');
 dotenv.config();
 
+/**
+ * Constructor for data store
+ */
 function DataStore() {
 
     this.path = (electron.app || electron.remote.app).getPath('userData');
 }
 
-// download data and save to disk
-// there is no difference between downloading the current price and a price history
+/**
+ * Downloads data and saves to disk
+ * @param   {string}    ticker      Stock ticker
+ * @param   {string}    type        Type of data to download -- 'priceHistory'
+ * @param   {function}  callback    Function to call when execution is complete
+ * @return  {void}
+ */
 DataStore.prototype.download = function(ticker, type, callback) {
-    console.log('Downloading %s for %s', type, ticker);      
+    console.log('Downloading %s for %s', type, ticker);
 
     // set paths for directory and file
     var directoryPath = path.join(this.path, ticker);
     var filePath = path.join(directoryPath, type.concat('.txt'));
     
     var apiKey = process.env.ALPHAVANTAGE_API_KEY;
-    console.log(apiKey);
 
     var resourceURL = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY';
     resourceURL = resourceURL.concat('&symbol=', ticker);
@@ -75,7 +82,11 @@ DataStore.prototype.download = function(ticker, type, callback) {
     });        
 };
 
-// covert stored csv format into array of objects
+/**
+ * Convert stored CSV format into array of objects
+ * @param   {string}    rawData     The data stored in the download
+ * @return  {array}                 Formatted price history
+ */
 DataStore.prototype.parsePriceHistory = function(rawData) {
 
     // parse the data
@@ -110,11 +121,14 @@ DataStore.prototype.parsePriceHistory = function(rawData) {
     return priceHistory;
 };
 
-// retrieve data from disk
-// if data does not exist, download from internet
-// if data is old, download from internet
-// for price history, old means greater than 1 week old
-// for current price, old means greater than 1 day (or as specified in app)
+/**
+ * Retrieves data from disk
+ * If data does not exist or is old, it is re-downloaded from internet.
+ * @param   {string}    ticker      Stock ticker
+ * @param   {string}    type        Type of data to download -- 'priceHistory'
+ * @param   {function}  callback    Function to call when execution is complete
+ * @return  {void}
+ */
 DataStore.prototype.retrieve = function(ticker, type, callback) {
 
     console.log('Trying to retrieve %s', type);
@@ -184,8 +198,13 @@ DataStore.prototype.retrieve = function(ticker, type, callback) {
     });
 };
 
-// initial retrieval and analysis of data associated with the provided ticker
-// this is to be run on app load
+/**
+ * Initial retrieval and analysis of data associated with the provided ticker
+ * To be executed on app load
+ * @param   {string}    ticker      Stock ticker
+ * @param   {string}    days        Number of days to consider
+ * @param   {function}  callback    Function to call when execution is complete
+ */
 DataStore.prototype.initialize = function(ticker, days, callback) {
 
     var impliedVolatility = null;
