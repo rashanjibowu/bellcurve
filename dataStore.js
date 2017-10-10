@@ -44,8 +44,6 @@ DataStore.prototype.download = function(ticker, type, callback) {
             return;
         }
 
-        console.log('Successful download');        
-
         // check for the existence of the destination directory
         fs.access(directoryPath, fs.constants.W_OK, function(error) {
         
@@ -54,18 +52,15 @@ DataStore.prototype.download = function(ticker, type, callback) {
                 console.warn('Directory does not exist. Creating it...');
                 fs.mkdir(directoryPath, function(error) {
                     if (error) {
-                        console.error('Unable to create directory');
+                        callback('Unable to create directory');
                         return;
-                    } else {
-                        console.log('Directory is created!');
-                    }
+                    } 
                 });
             }
             
             // then we save the data to a file
             fs.writeFile(filePath, body, 'utf-8', function(error) {
                 if (error) {
-                    console.error(error);
                     callback(error);
                     return;
                 } else {                    
@@ -138,7 +133,6 @@ DataStore.prototype.retrieve = function(ticker, type, callback) {
             self.download(ticker, type, function(downloadError) {
 
                 if (downloadError) {
-                    console.error('Unable to read data from disk or download data');
                     callback(downloadError);
                     return;
                 }
@@ -146,19 +140,15 @@ DataStore.prototype.retrieve = function(ticker, type, callback) {
                 // successful download, read again
                 fs.readFile(filePath, 'utf-8', function(error, recentData) {
                     if (error) {
-                        console.error('Still unable to read data from disk or download data');
                         callback(error);
                         return;
                     }
 
-                    console.log('We found recently downloaded data!');                        
                     callback(null, self.parsePriceHistory(recentData));
                 });
             });            
         } else {
             // we found the data
-            console.log('We found a saved version!');
-
             // if data is old, re-download
             const MILLIS_PER_DAY = 1000 * 60 * 60 * 24;
             data = self.parsePriceHistory(data);
@@ -166,7 +156,7 @@ DataStore.prototype.retrieve = function(ticker, type, callback) {
             var date = data[0].timestamp;
             var now = new Date();
             if (new Date(date) < (now - MILLIS_PER_DAY)) {
-                console.log('But, the data looks old. We need to download fresh data...');
+                console.warn('Data looks old. Attempting to download fresh data...');
                 
                 self.download(ticker, type, function(downloadError) {
 
@@ -184,7 +174,6 @@ DataStore.prototype.retrieve = function(ticker, type, callback) {
                             return;
                         }
 
-                        console.log('We found recently downloaded data!');
                         callback(null, self.parsePriceHistory(recentData));
                     });
                 });
@@ -206,7 +195,7 @@ DataStore.prototype.initialize = function(ticker, days, callback) {
     this.retrieve(ticker, 'priceHistory', function(error, data) {
 
         if (error) {
-            console.error(error);
+            callback(error);
             return;
         }
 
