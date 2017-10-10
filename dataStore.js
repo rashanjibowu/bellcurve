@@ -7,6 +7,8 @@ const fs = require('fs');
 const math = require('mathjs');
 const utils = require('./utils.js');
 const request = require('request');
+const dotenv = require('dotenv');
+dotenv.config();
 
 function DataStore() {
 
@@ -22,7 +24,13 @@ DataStore.prototype.download = function(ticker, type, callback) {
     var directoryPath = path.join(this.path, ticker);
     var filePath = path.join(directoryPath, type.concat('.txt'));
     
-    var resourceURL = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=MSFT&apikey=demo&datatype=csv';
+    var apiKey = process.env.ALPHAVANTAGE_API_KEY;
+    console.log(apiKey);
+
+    var resourceURL = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY';
+    resourceURL = resourceURL.concat('&symbol=', ticker);
+    resourceURL = resourceURL.concat('&apikey=', apiKey);
+    resourceURL = resourceURL.concat('&datatype=csv');
     var self = this;
 
     request(resourceURL, function(error, response, body) {
