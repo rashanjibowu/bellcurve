@@ -90,7 +90,6 @@ DataStore.prototype.download = function(ticker, type, callback) {
 DataStore.prototype.parsePriceHistory = function(rawData) {
 
     // parse the data
-    console.log('Parsing the data ...');
     var lines = rawData.split('\n');
 
     var priceHistory = lines.map(function(line, index) {
@@ -130,8 +129,6 @@ DataStore.prototype.parsePriceHistory = function(rawData) {
  * @return  {void}
  */
 DataStore.prototype.retrieve = function(ticker, type, callback) {
-
-    console.log('Trying to retrieve %s', type);
 
     // set paths for directory and file
     var directoryPath = path.join(this.path, ticker);

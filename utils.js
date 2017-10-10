@@ -12,7 +12,7 @@ module.exports = {
      * @param   {number}    currentPrice    Current price of stock
      * @param   {number}    dailyVolatility Standard deviation of annual returns
      * @param   {number}    days            Number of days to consider
-     * @return  [{number}]                  Two-element array containing the expected move
+     * @return  {array}                     Two-element array containing the expected move
      */
     expectedMove: function(currentPrice, annualVolatility, days) {
         var min = currentPrice - currentPrice * annualVolatility * Math.sqrt(days / TRADING_DAYS_PER_YEAR);
@@ -25,7 +25,7 @@ module.exports = {
      * @param   {number}    mean    The mean return
      * @param   {number}    sigma   The standard deviation of returns
      * @param   {number}    days    The number of days to consider
-     * @return  [{object}]          Array of objects used to draw the probability density curve
+     * @return  {array}             Array of objects used to draw the probability density curve
      */
     returnDistribution: function(mean, sigma, days) {        
     
@@ -57,9 +57,9 @@ module.exports = {
 
     /**
      * Returns a distribution of prices corresponding to the provided distribution of returns
-     * @param   {number}    currentPrice    The current price of the stock
-     * @param   [{object}]  returnDistribution  The distribution of returns
-     * @return  [{object}]                  Distribution of prices
+     * @param   {number}    currentPrice        The current price of the stock
+     * @param   {array}     returnDistribution  The distribution of returns
+     * @return  {array}                         Distribution of prices
      */
     priceDistribution: function(currentPrice, returnDistribution) {
         return returnDistribution.map(function(value) {
@@ -70,8 +70,8 @@ module.exports = {
 
     /**
      * Returns the daily returns from a time series of prices
-     * @param   [{object}]  priceHistory    Array of objects containing the price history as a time series
-     * @return  [{object}]                  Array of objects containing a history of returns
+     * @param   {array}  priceHistory    Array of objects containing the price history as a time series
+     * @return  {array}                  Array of objects containing a history of returns
      */
     returnHistory: function(priceHistory) {  
 
@@ -176,7 +176,7 @@ module.exports = {
      * @param   {number}    currentPrice    Stock's current price
      * @param   {number}    targetPrice     Desired price of the stock
      * @param   {number}    days            Number of days to consider
-     * @param   [{object}]  priceHistory    Array of prices as a time series
+     * @param   {array}     priceHistory    Array of prices as a time series
      * @return  {object}                    Object containing price distribution, expected move, and probablity of desired outcome
      */
     analyze: function(currentPrice, targetPrice, days, priceHistory) {
@@ -187,7 +187,6 @@ module.exports = {
         // calculate mean return
         var meanDailyReturn = this.meanReturn(returnsHistory);
         var meanAnnualReturn = this.scaleReturn(meanDailyReturn, TRADING_DAYS_PER_YEAR);
-        var meanPeriodicReturn = this.scaleReturn(meanDailyReturn, days);
 
         // calculate historical volatility
         var stdDailyReturn = this.stdReturn(returnsHistory);
