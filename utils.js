@@ -5,14 +5,6 @@ var math = require('mathjs');
 
 const TRADING_DAYS_PER_YEAR = 252;
 
-// calculate the gaussian y value
-// what's the probability that x is from this population
-function gaussian(x, mean, sigma) {
-	const gaussianConstant = 1 / Math.sqrt(2 * Math.PI);
-    x = (x - mean) / sigma;
-    return gaussianConstant * Math.exp(-.5 * x * x) / sigma;
-}
-
 module.exports = {
 
     /**
@@ -28,6 +20,13 @@ module.exports = {
         return [min, max];
     },
 
+    /**
+     * Return the distribution of potential returns within 3 standard deviations
+     * @param   {number}    mean    The mean return
+     * @param   {number}    sigma   The standard deviation of returns
+     * @param   {number}    days    The number of days to consider
+     * @return  [{object}]          Array of objects used to draw the probability density curve
+     */
     returnDistribution: function(mean, sigma, days) {        
     
         // mean is assumed to be an annualized return
@@ -56,6 +55,12 @@ module.exports = {
         return data;
     },
 
+    /**
+     * Returns a distribution of prices corresponding to the provided distribution of returns
+     * @param   {number}    currentPrice    The current price of the stock
+     * @param   [{object}]  returnDistribution  The distribution of returns
+     * @return  [{object}]                  Distribution of prices
+     */
     priceDistribution: function(currentPrice, returnDistribution) {
         return returnDistribution.map(function(value) {
             value.price = currentPrice * (1 + value.observation);
@@ -63,6 +68,11 @@ module.exports = {
         });
     },
 
+    /**
+     * Returns the daily returns from a time series of prices
+     * @param   [{object}]  priceHistory    Array of objects containing the price history as a time series
+     * @return  [{object}]                  Array of objects containing a history of returns
+     */
     returnHistory: function(priceHistory) {  
 
         // sort: make sure we are in ascending time order
@@ -127,16 +137,25 @@ module.exports = {
         return dailyVolatility * Math.sqrt(days);
     },
 
-    impliedVolatility: function(optionChain, currentPrice, dividendRate, interestRate) {
-        return null;
-    },
-
+    /**
+     * Returns the percentage change between the target and current prices
+     * @param   {number}    currentPrice    The stock's current price
+     * @param   {number}    targetPrice     The desired price of the stock
+     * @return  {number}                    Percentage change between target and current prices
+     */
     impliedReturn: function(currentPrice, targetPrice) {
         return targetPrice / currentPrice - 1;
     },
 
-    // calculate probability of reaching a certain price
-    // use the cumulative probability distribution function
+    /**
+     * Returns the probability of reaching a target price
+     * Uses the cumulative probability distribution function
+     * @param   {number}    currentPrice    The stock's current price
+     * @param   {number}    targetPrice     The desired price of the stock
+     * @param   {number}    mean            The average return of the stock
+     * @param   {number}    volatility      The volatility of the returns of the stock
+     * @return  {number}                    Probability of reaching a target price
+     */
     probabilityOfOutcome: function(currentPrice, targetPrice, mean, volatility) {
         // find the return implied by the target price
         var impliedReturn = this.impliedReturn(currentPrice, targetPrice);
@@ -152,6 +171,14 @@ module.exports = {
         return prob;
     },
 
+    /**
+     * Returns price distribution, expected move, and probabilty of desired outcome
+     * @param   {number}    currentPrice    Stock's current price
+     * @param   {number}    targetPrice     Desired price of the stock
+     * @param   {number}    days            Number of days to consider
+     * @param   [{object}]  priceHistory    Array of prices as a time series
+     * @return  {object}                    Object containing price distribution, expected move, and probablity of desired outcome
+     */
     analyze: function(currentPrice, targetPrice, days, priceHistory) {
 
         // calculate return history
@@ -165,21 +192,15 @@ module.exports = {
         // calculate historical volatility
         var stdDailyReturn = this.stdReturn(returnsHistory);
         var stdAnnualReturn = this.scaleVolatility(stdDailyReturn, TRADING_DAYS_PER_YEAR);
-        var stdPeriodicReturn = this.scaleVolatility(stdDailyReturn, days);
-
-        // calculate implied volatility
-        //var impliedVolatility = this.impliedVolatility(null, currentPrice, null, null);
+        var stdPeriodicReturn = this.scaleVolatility(stdDailyReturn, days);        
 
         // returns are normally distributed
         var distributionOfReturns_HV = this.returnDistribution(meanAnnualReturn, stdAnnualReturn, days);
-        //var distributionOfReturns_IV = this.returnDistribution(meanReturnAnnual, impliedVolatility, days);
 
         // prices are derived from the returns
         var data_HV = this.priceDistribution(currentPrice, distributionOfReturns_HV);
-        //var data_IV = this.priceDistribution(currentPrice, distributionOfReturns_IV);
 
         // calculate expected moves
-        //var expectedMove_IV = this.expectedMove(currentPrice, impliedVolatility, days);
         var expectedMove_HV = this.expectedMove(currentPrice, stdAnnualReturn, days);
 
         // prob of outcome        
@@ -194,6 +215,12 @@ module.exports = {
         };
     },
 
+    /**
+     * Returns the target price given by a target return
+     * @param   {number}    currentPrice    Stock's current price
+     * @param   {number}    targetReturn    Desired absolute rate of return
+     * @return  {number}                    Target price
+     */
     updateTargetPrice: function(currentPrice, targetReturn) {
         return currentPrice * (1 + targetReturn);
     }
