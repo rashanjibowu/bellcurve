@@ -16,6 +16,7 @@ let analysis;
 
 // set up chart
 var chart = setUpChart();
+var dailyReturnChart = setUpDailyReturnsChart();
 
 // obtain references to key UI elements
 var tickerElement = document.getElementById('ticker');
@@ -47,6 +48,8 @@ dataStore.initialize(TICKER, DAYS, function(error, initialState) {
         analysis.expectedMoveHV, 
         analysis.expectedMoveIV
     );
+
+    drawDailyReturnsHistory(dailyReturnChart, 2, 2);
 });
 
 // when user changes ticker, retrieve/download current and historical pricing data
@@ -89,6 +92,8 @@ tickerElement.addEventListener('change', function(event) {
             analysis.expectedMoveHV, 
             analysis.expectedMoveIV
         );     
+
+        drawDailyReturnsHistory(dailyReturnChart, 2, 2);
     });    
 });
 
@@ -142,8 +147,8 @@ daysElement.addEventListener('input', function(event) {
  * @return  {object}    An object that includes a reference to a chart object as well its width and height
  */
 function setUpChart() {
-    var margin = { top: 20, right: 20, bottom: 20, left: 40 };
-    var svg = d3.select('svg');
+    var margin = { top: 20, right: 10, bottom: 20, left: 10 };
+    var svg = d3.select('svg#bellCurve');
     var width = +svg.attr('width') - margin.left - margin.right;
     var height = +svg.attr('height') - margin.top - margin.bottom;
     
@@ -222,7 +227,7 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
         .select(".domain")
         .remove();
 
-    // draw the y axis
+    /* draw the y axis
     chart.append("g")
         .classed('chart', true)
         .call(d3.axisLeft(yScale))
@@ -231,7 +236,7 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
         .attr("transform", "rotate(-90)")
         .attr("y", 6)
         .attr("dy", "0.71em")
-        .attr("text-anchor", "end");
+        .attr("text-anchor", "end");*/
 
     // set the bottom of the area chart
     area.y0(yScale(yExtent[0]));
@@ -327,4 +332,35 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
  */
 function updateProbability(element, probability) {
     element.textContent = (probability * 100).toFixed(1).concat('%');
+}
+
+/**
+ * Sets up the daily return history chart
+ */
+function setUpDailyReturnsChart() {
+    var margin = { top: 20, right: 10, bottom: 20, left: 10 };
+    var svg = d3.select('svg#dailyReturns');
+    var width = +svg.attr('width') - margin.left - margin.right;
+    var height = +svg.attr('height') - margin.top - margin.bottom;
+    
+    var g = svg.append('g')
+        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+        .classed('blend-wrapper', true);
+
+    return {
+        chartSelection: g,
+        width: width,
+        height: height
+    };
+}
+
+/**
+ * Draws the daily return history chart
+ */
+function drawDailyReturnsHistory(chart, expectedReturn, returnHistory) {
+    console.log('Drawing daily return chart');
+
+    var height = chart.height;
+    var width = chart.width;
+    chart = chart.chartSelection;
 }

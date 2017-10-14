@@ -2,18 +2,61 @@
 <html lang="en">
 <head>    
     <title>Visualizing Data with Electron!</title>
+    <link rel="stylesheet" href="main.css">
 </head>
 <body>
-    <h1>What are the chances that ...?</h1>
-    <div>
-        <select id='ticker' name='ticker'>
-            <option value='COF' selected>COF</option>
-            <option value='MS'>MS</option>
-            <option value='CSCO'>CSCO</option>
-        </select> reaches $<input id='targetPrice' type='number' name='targetPrice' value='80' placeholder='80' min='1' step='0.25' /> in <input id='days' type='number' value='30' placeholder='30' min='1' /> days
+
+    <!-- Left sidebar -->
+    <div class='sidebar'>
+        <div class='logo'>LOGO</div>
+        <div class='refresh'>
+            <label>Refresh every...</label>
+            <select id='refreshSelect'>
+                <option value='second'>Second</option>
+                <option value='minute' selected>Minute</option>
+                <option value='hour'>Hour</option>
+            </select>
+
+            <button id='refreshButton'>Refresh</button>
+
+            <!-- Market State -->
+            <div class='marketState'>
+                <div class='marketState indicator'></div>
+                <p>Market: <span id='marketStatus'>Closed</span></p>
+            </div>
+
+            <!-- Data State -->
+            <div class='dataState'>
+                <div class='dataState indicator'></div>
+                <p>Data: <span id='dataStatus'>Error</span></p>
+            </div>
+
+        </div>
     </div>
-    <p id='chance'>15%</p>
-    <svg width = '400', height = '300'></svg>
+
+    <!-- Main area -->
+    <div class='main'>
+        <h1>The Chance that...</h1>
+        <div class='selections'>
+            <select id='ticker' name='ticker'>
+                <option value='COF' selected>COF</option>
+                <option value='MS'>MS</option>
+                <option value='CSCO'>CSCO</option>
+            </select> 
+            reaches <input id='targetPrice' type='number' name='targetPrice' value='80' placeholder='80' min='1' step='0.25' /> 
+            in <input id='days' type='number' value='30' placeholder='30' min='1' max='90' /> days
+        </div>
+        <p id='chance'>15%</p>
+        <p id='refreshTime'>As of yesterday</p>
+    </div>
+
+    <!-- Right column with visualization -->
+    <div class='visualization'>
+        <svg id='bellCurve' width = '225', height = '300'></svg>
+        <svg id='dailyReturns' width = '225', height = '70'></svg>
+        <p id='lastClose'>Last Close: +1.8% (1.2 SD)</p>
+    </div>
+    
     <script src="renderer.js"></script>
 </body>
 </html>

@@ -1,8 +1,87 @@
-/*.blend-wrapper {
-    isolation: isolate
+body {
+    margin: 0;
 }
 
-.blend-target {
-    background-blend-mode: multiply;
-    mix-blend-mode: multiply;
-}*/
+.sidebar {    
+    width: 100px;
+    height: 400px;
+    background-color: #000000;
+    float: left;
+    padding: 5px;
+    color: #FFFFFF;
+}
+
+.main {
+    width: 475px;
+    height: 400px;
+    background-color: #CCCCCC;    
+    float: left;    
+    padding: 5px;
+}
+
+.visualization {
+    width: 225px;
+    height: 400px;
+    padding: 5px;
+    border-right: 1px solid #000000;
+    float: left;
+}
+
+.logo {
+    width: 100px;
+    height: 70px;
+    border: 1px solid #FFFFFF;
+}
+
+.indicator {
+    background-color: green;
+    border: 1px solid #FFFFFF;
+    border-radius: 5px;
+    width: 10px;
+    height: 10px;
+}
+
+#ticker, #targetPrice, #days {
+    height: 48px;
+    background-color: #0E0E0E;
+    text-align: center;
+    font-size: 20pt;
+    color: #E0E0E0;
+}
+
+#targetPrice {
+    width: 120px;
+    text-align: center;
+}
+
+#days {
+    width: 60px;
+    text-align: right;
+}
+
+#chance {
+    font-size: 100pt;
+    border: 1px solid black;
+    margin: 50px 0px 0px 0px;
+    text-align: center;
+}
+
+.selections {
+    border: 1px solid black;
+    text-align: center;
+}
+
+#refreshTime {
+    text-align: center;
+    font-style: italic;
+}
+
+svg {
+    border: 1px solid black;
+}
+
+#lastClose {
+    margin: 0;
+    text-align: center;
+    font-style: italic;
+}
