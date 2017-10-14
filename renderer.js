@@ -13,6 +13,7 @@ const DAYS = 30;
 const INITIAL_TARGET_RETURN = 0.10;
 let data;
 let analysis;
+const MARKET_STATUS_CHECK_INTERVAL = 1000 * 10;
 
 // set up chart
 var chart = setUpChart();
@@ -24,6 +25,11 @@ var targetPriceElement = document.getElementById('targetPrice');
 var daysElement = document.getElementById('days');
 var probElement = document.getElementById('chance');
 
+// check the status of the market
+updateMarketStatus();
+setInterval(function() {
+    updateMarketStatus();
+}, MARKET_STATUS_CHECK_INTERVAL);
 
 // initialize the UI with initial values
 dataStore.initialize(TICKER, DAYS, function(error, initialState) {
@@ -390,5 +396,44 @@ function updateDataStatus(status) {
         dataStatusIndicator.className = 'dataState indicator statusError';
         dataStatusText.textContent = 'Error';
         dataStatusText.className = 'textError';
+    }
+}
+
+/**
+ * If the market is open, show a green light. Otherwise, show a red light
+ * Market is considered open if we are between the hours of 9:30am and 4:00pm ET 
+ * Monday through Friday
+ */
+function updateMarketStatus() {
+
+    var marketStatusIndicator = document.getElementById('marketStatus');
+    var marketStatusText = document.getElementById('marketStatusText');
+
+    var now = new Date();
+
+    var isClosed = true;
+
+    var dayOfWeek = now.getUTCDay();
+    var hours = now.getUTCHours();
+    var minutes = now.getUTCMinutes();
+
+    if (dayOfWeek > 0 && dayOfWeek < 6) {
+        if (hours > 13 && hours < 20) {
+            isClosed = false;
+        }          
+        
+        if (hours == 13 && minutes >= 30) {
+            isClosed = false;
+        }
+    }
+
+    if (isClosed) {
+        marketStatusIndicator.className = 'marketState indicator statusClosed';
+        marketStatusText.textContent = 'Closed';
+        marketStatusText.className = 'textError';
+    } else {
+        marketStatusIndicator.className = 'marketState indicator statusOK';
+        marketStatusText.textContent = 'Open';
+        marketStatusText.className = 'textOK';
     }
 }
