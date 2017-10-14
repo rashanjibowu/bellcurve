@@ -76,8 +76,20 @@ body {
     background-color: red;
 }
 
+.textError {
+    color: red;
+}
+
 .statusOK {
     background-color: green;
+}
+
+.textOK {
+    color: green;
+}
+
+#dataStatusText {
+    font-weight: bold;
 }
 
 .marketState p, .dataState p {

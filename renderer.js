@@ -385,8 +385,10 @@ function updateDataStatus(status) {
     if (status.toLowerCase() == 'ok') {
         dataStatusIndicator.className = 'dataState indicator statusOK';
         dataStatusText.textContent = 'OK';
+        dataStatusText.className = 'textOK';
     } else {        
         dataStatusIndicator.className = 'dataState indicator statusError';
         dataStatusText.textContent = 'Error';
+        dataStatusText.className = 'textError';
     }
 }
