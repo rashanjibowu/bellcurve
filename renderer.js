@@ -24,13 +24,17 @@ var targetPriceElement = document.getElementById('targetPrice');
 var daysElement = document.getElementById('days');
 var probElement = document.getElementById('chance');
 
+
 // initialize the UI with initial values
 dataStore.initialize(TICKER, DAYS, function(error, initialState) {
 
     if (error) {
         console.error(error);
+        updateDataStatus('error');
         return;
     }
+
+    updateDataStatus('OK');
 
     data = initialState;
     analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
@@ -65,8 +69,11 @@ tickerElement.addEventListener('change', function(event) {
 
         if (priceHistoryError) {
             console.error(priceHistoryError);
+            updateDataStatus('error');
             return;
         }
+
+        updateDataStatus('OK');
 
         // cache updated raw data and input        
         data.currentPrice = priceHistoryData[0].close;
@@ -363,4 +370,23 @@ function drawDailyReturnsHistory(chart, expectedReturn, returnHistory) {
     var height = chart.height;
     var width = chart.width;
     chart = chart.chartSelection;
+}
+
+/**
+ * Updates UI elements to let user know whether the data was downloaded successfully
+ * @param   {string} status Whether the data downloaded successfully. Either 'error' or 'ok'
+ * @return  {void}
+ */
+function updateDataStatus(status) {
+
+    var dataStatusIndicator = document.getElementById('dataStatus');
+    var dataStatusText = document.getElementById('dataStatusText');
+
+    if (status.toLowerCase() == 'ok') {
+        dataStatusIndicator.className = 'dataState indicator statusOK';
+        dataStatusText.textContent = 'OK';
+    } else {        
+        dataStatusIndicator.className = 'dataState indicator statusError';
+        dataStatusText.textContent = 'Error';
+    }
 }
