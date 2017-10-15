@@ -3,7 +3,7 @@
 const d3 = require('d3');
 const DataStore = require('./dataStore.js');
 const utils = require('./utils.js');
- 
+
 // set up a data store
 var dataStore = new DataStore();
 
@@ -509,6 +509,7 @@ function updateDataStatus(status) {
  * If the market is open, show a green light. Otherwise, show a red light
  * Market is considered open if we are between the hours of 9:30am and 4:00pm ET 
  * Monday through Friday
+ * @return  {void}
  */
 function updateMarketStatus() {
 
