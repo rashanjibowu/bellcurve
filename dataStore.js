@@ -70,15 +70,11 @@ DataStore.prototype.download = function(ticker, type, callback) {
                 if (error) {
                     callback(error);
                     return;
-                } else {                    
+                } else {             
                     callback(null);
                 }
             });
-        });
-
-        var priceHistory = self.parsePriceHistory(body)          
-
-        callback(null, priceHistory);
+        });        
     });        
 };
 
@@ -90,31 +86,23 @@ DataStore.prototype.download = function(ticker, type, callback) {
 DataStore.prototype.parsePriceHistory = function(rawData) {
 
     // parse the data
-    var lines = rawData.split('\n');
+    var lines = rawData.split('\n');    
 
-    var priceHistory = lines.map(function(line, index) {
-        if (index == 0) {
-            return {};
-        }
+    var priceHistory = [];
 
-        var values = line.split(',');
-        var date = new Date(values[0]);
-        return {
-            timestamp: Date.parse(values[0]),
-            open: +values[1],
-            high: +values[2],
-            low: +values[3],
-            close: +values[4],
-            volume: +values[5]
-        }
-    }); 
+    for (var i = 0; i < lines.length; i++) {
+        var values = lines[i].split(',');
 
-    // remove header
-    priceHistory.shift();
-
-    // remove last element if it's functionally empty
-    if (!priceHistory[(priceHistory.length - 1)].timestamp) {
-        priceHistory.pop();
+        if (values.length == 6 && i > 0) {
+            priceHistory.push({
+                timestamp: values[0],
+                open: +values[1],
+                high: +values[2],
+                low: +values[3],
+                close: +values[4],
+                volume: +values[5]
+            });
+        }        
     }    
     
     return priceHistory;
@@ -215,8 +203,13 @@ DataStore.prototype.initialize = function(ticker, days, callback) {
             return;
         }
 
+        if (data.length == 0) {
+            callback('No data found');
+            return;
+        }
+
         let priceHistory = data;
-        
+
         // assume that we are starting from a price history
         // calculate daily returns and volatility
         var returnsHistory = utils.returnHistory(priceHistory);
