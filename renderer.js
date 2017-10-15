@@ -42,13 +42,14 @@ dataStore.initialize(TICKER, DAYS, function(error, initialState) {
 
     updateDataStatus('OK');
 
-    data = initialState;
+    data = initialState;    
     analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
     updateProbability(probElement, analysis.probabilityOfOutcome);
 
     // update the target price
     targetPriceElement.value = Math.round(data.targetPrice);        
 
+    // draw the bell curve
     drawChart(
         chart, 
         data.currentPrice, 
@@ -352,6 +353,7 @@ function updateProbability(element, probability) {
 
 /**
  * Sets up the daily return history chart
+ * @return  {void}
  */
 function setUpDailyReturnsChart() {
     var margin = { top: 20, right: 10, bottom: 20, left: 40 };
@@ -373,6 +375,11 @@ function setUpDailyReturnsChart() {
 
 /**
  * Draws the daily return history chart
+ * @param   {object}    chart   Reference to chart object
+ * @param   {array}     expectedReturn  Array of 1 standard deviation daily returns
+ * @param   {array}     returnHistory   Array of daily returns
+ * @param   {string}    ticker  Stock ticker
+ * @return  {void}
  */
 function drawDailyReturnsHistory(chart, expectedReturn, returnHistory, ticker) {    
 

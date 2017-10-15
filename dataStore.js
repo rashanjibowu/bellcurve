@@ -70,15 +70,11 @@ DataStore.prototype.download = function(ticker, type, callback) {
                 if (error) {
                     callback(error);
                     return;
-                } else {                    
+                } else {             
                     callback(null);
                 }
             });
-        });
-
-        var priceHistory = self.parsePriceHistory(body)          
-
-        callback(null, priceHistory);
+        });        
     });        
 };
 
