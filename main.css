@@ -140,3 +140,11 @@ svg {
     text-align: center;
     font-style: italic;
 }
+
+.axis path, .axis line {
+    stroke: gray;
+}
+
+.axis text {
+    fill: gray;
+}

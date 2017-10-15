@@ -210,7 +210,9 @@ module.exports = {
             priceDistributionIV: null,
             expectedMoveHV: expectedMove_HV,
             expectedMoveIV: null,
-            probabilityOfOutcome: pos
+            probabilityOfOutcome: pos,
+            stdDailyReturn: stdDailyReturn,
+            returnsHistory: returnsHistory
         };
     },
 
