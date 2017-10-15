@@ -60,9 +60,12 @@ dataStore.initialize(TICKER, DAYS, function(error, initialState) {
         analysis.expectedMoveIV
     );
 
+    // draw recent daily price moves
     var expectedReturn = [-analysis.stdDailyReturn, analysis.stdDailyReturn];
-
     drawDailyReturnsHistory(dailyReturnChart, expectedReturn, analysis.returnsHistory, TICKER);
+    
+    // update last move
+    updateLastMove(analysis.returnsHistory[(analysis.returnsHistory.length - 1)].return, analysis.stdDailyReturn);
 });
 
 // when user changes ticker, retrieve/download current and historical pricing data
@@ -110,7 +113,10 @@ tickerElement.addEventListener('change', function(event) {
         );     
 
         var expectedReturn = [-analysis.stdDailyReturn, analysis.stdDailyReturn];
-        drawDailyReturnsHistory(dailyReturnChart, expectedReturn, analysis.returnsHistory, data.ticker.toUpperCase());
+        drawDailyReturnsHistory(dailyReturnChart, expectedReturn, analysis.returnsHistory, data.ticker.toUpperCase());       
+
+        // update last move
+        updateLastMove(analysis.returnsHistory[(analysis.returnsHistory.length - 1)].return, analysis.stdDailyReturn);
     });    
 });
 
@@ -550,4 +556,19 @@ function updateMarketStatus() {
         marketStatusText.textContent = 'Open';
         marketStatusText.className = 'textOK';
     }
+}
+
+/**
+ * Updates the UI to reflect context around most recent price movement
+ * @param   {number} percentReturn    Daily return as percentage
+ * @param   {number} stdDailyReturn   Standard deviation of daily returns
+ * @return  {void}
+ */
+function updateLastMove(percentReturn, stdDailyReturn) {
+    var lastMoveElement = document.getElementById('lastClose');
+    
+    var pctRet = (percentReturn * 100).toFixed(1);
+    var context = (percentReturn / stdDailyReturn).toFixed(1);
+
+    lastMoveElement.textContent = 'Last Close: '.concat(pctRet, '% (', context , ' SD)')
 }
