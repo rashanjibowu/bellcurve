@@ -3,7 +3,7 @@
 const d3 = require('d3');
 const DataStore = require('./dataStore.js');
 const utils = require('./utils.js');
- 
+
 // set up a data store
 var dataStore = new DataStore();
 
@@ -59,7 +59,9 @@ dataStore.initialize(TICKER, DAYS, function(error, initialState) {
         analysis.expectedMoveIV
     );
 
-    drawDailyReturnsHistory(dailyReturnChart, 2, 2);
+    var expectedReturn = [-analysis.stdDailyReturn, analysis.stdDailyReturn];
+
+    drawDailyReturnsHistory(dailyReturnChart, expectedReturn, analysis.returnsHistory, TICKER);
 });
 
 // when user changes ticker, retrieve/download current and historical pricing data
@@ -106,7 +108,8 @@ tickerElement.addEventListener('change', function(event) {
             analysis.expectedMoveIV
         );     
 
-        drawDailyReturnsHistory(dailyReturnChart, 2, 2);
+        var expectedReturn = [-analysis.stdDailyReturn, analysis.stdDailyReturn];
+        drawDailyReturnsHistory(dailyReturnChart, expectedReturn, analysis.returnsHistory, data.ticker.toUpperCase());
     });    
 });
 
@@ -351,7 +354,7 @@ function updateProbability(element, probability) {
  * Sets up the daily return history chart
  */
 function setUpDailyReturnsChart() {
-    var margin = { top: 20, right: 10, bottom: 20, left: 10 };
+    var margin = { top: 20, right: 10, bottom: 20, left: 40 };
     var svg = d3.select('svg#dailyReturns');
     var width = +svg.attr('width') - margin.left - margin.right;
     var height = +svg.attr('height') - margin.top - margin.bottom;
@@ -363,19 +366,122 @@ function setUpDailyReturnsChart() {
     return {
         chartSelection: g,
         width: width,
-        height: height
+        height: height,
+        margin: margin
     };
 }
 
 /**
  * Draws the daily return history chart
  */
-function drawDailyReturnsHistory(chart, expectedReturn, returnHistory) {
-    console.log('Drawing daily return chart');
+function drawDailyReturnsHistory(chart, expectedReturn, returnHistory, ticker) {    
 
     var height = chart.height;
     var width = chart.width;
+    var margin = chart.margin;
     chart = chart.chartSelection;
+
+    // remove old chart
+    chart.selectAll('.chart').remove();
+
+    // convert date formats
+    var data = returnHistory.map(function(value) {
+        value.date = new Date(value.date);
+        return value
+    });
+
+    // use the last 30 days
+    data = data.sort(function(a, b) {
+        return new Date(a.date) - new Date(b.date);
+    });
+
+    const TARGET_LENGTH = 30;
+    var actualLength = data.length;
+
+    if (actualLength > TARGET_LENGTH) {
+        data.splice(0, actualLength - TARGET_LENGTH);
+    }   
+
+    // set up scale
+    var xScale = d3.scaleTime()
+        .domain(d3.extent(data, function(d) { return new Date(d.date) }))
+        .range([0, width]);
+
+    // make sure there is a zero-line and lower standard deviation line
+    var yExtent = d3.extent(data, function(d) { return d.return });
+    yExtent[0] = (yExtent[0] < expectedReturn[0]) ? yExtent[0] : yExtent[0] - 0.01;
+
+    var yScale = d3.scaleLinear()
+        .domain(yExtent)
+        .range([height, 0]);
+
+    // plot x axis and draw standard deviation bars above and below
+    ([0].concat(expectedReturn)).forEach(function(value) {
+        chart.append('line')
+            .attr('x1', xScale(data[0].date))
+            .attr('x2', xScale(data[(data.length - 1)].date))
+            .attr('y1', yScale(value))
+            .attr('y2', yScale(value))
+            .attr('stroke-width', 1)
+            .attr('stroke-dasharray', function() {
+                if (value == 0) return '1, 0'
+                return '2, 5'
+            })
+            .attr('stroke', 'gray')
+            .classed('chart', true)
+            .attr('fill', 'none');
+    }); 
+
+    // plot y axis
+    var yAxis = d3.axisLeft(yScale)
+        .ticks(5)
+        .tickFormat(d3.format('.1%'));
+
+    chart.append("g")
+        .classed('chart axis', true)
+        .call(yAxis)
+        .append("text")
+        .attr("fill", "gray")
+        .attr("transform", "rotate(-90)")
+        .attr("dy", "0.71em")
+        .attr("text-anchor", "end");
+
+    // draw a line chart
+    var line = d3.line()
+        .x(function(d) { return xScale(d.date) })
+        .y(function(d) { return yScale(d.return) });
+
+    chart.append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke-linejoin", "round")
+        .attr("stroke-linecap", "round")
+        .attr("stroke-width", 1.5)
+        .attr('stroke', '#1f78b4')
+        .classed('chart', true)
+        .attr("d", line);
+    
+    // add labels
+    chart.append('text')
+        .text('Daily '.concat(ticker, ' Returns'))
+        .attr('x', width / 2)
+        .attr('y', margin.top - 25)
+        .attr('fill', 'gray')
+        .attr('text-anchor', 'middle')
+        .classed('chart', true)
+        .style('font-size', '9pt')
+        .style('font-family', 'sans-serif');
+
+    chart.append('text')
+        .text('Last '.concat(data.length, ' Days'))
+        .attr('x', width / 2)
+        .attr('y', height + margin.bottom - 5)
+        .attr('fill', 'gray')
+        .attr('text-anchor', 'middle')
+        .classed('chart', true)
+        .style('font-size', '9pt')
+        .style('font-family', 'sans-serif');
+
 }
 
 /**
@@ -403,6 +509,7 @@ function updateDataStatus(status) {
  * If the market is open, show a green light. Otherwise, show a red light
  * Market is considered open if we are between the hours of 9:30am and 4:00pm ET 
  * Monday through Friday
+ * @return  {void}
  */
 function updateMarketStatus() {
 
