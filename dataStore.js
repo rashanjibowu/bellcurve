@@ -203,8 +203,13 @@ DataStore.prototype.initialize = function(ticker, days, callback) {
             return;
         }
 
+        if (data.length == 0) {
+            callback('No data found');
+            return;
+        }
+
         let priceHistory = data;
-        
+
         // assume that we are starting from a price history
         // calculate daily returns and volatility
         var returnsHistory = utils.returnHistory(priceHistory);
