@@ -70,19 +70,16 @@ module.exports = {
 
     /**
      * Returns the daily returns from a time series of prices
+     * Assumes the price history is in ascending date order
      * @param   {array}  priceHistory    Array of objects containing the price history as a time series
      * @return  {array}                  Array of objects containing a history of returns
      */
     returnHistory: function(priceHistory) {  
 
-        // sort: make sure we are in ascending time order
-        priceHistory = priceHistory.sort(function(a, b) {
-            return b.timestamp - a.timestamp
-        });
-
         return priceHistory.map(function(value, index, array) {
-            var r = {};
-            r.date = new Date(value.timestamp).toISOString();
+            var r = {
+                date: value.timestamp
+            };
 
             if (index == 0) {
                 r.return = 0
@@ -179,10 +176,17 @@ module.exports = {
      * @param   {array}     priceHistory    Array of prices as a time series
      * @return  {object}                    Object containing price distribution, expected move, and probablity of desired outcome
      */
-    analyze: function(currentPrice, targetPrice, days, priceHistory) {
+    analyze: function(currentPrice, targetPrice, days, priceHistory) {        
+
+        // sort in ascending order
+        var sorted = priceHistory.sort(function(a, b) {
+            var d1 = new Date(a.timestamp);
+            var d2 = new Date(b.timestamp);
+            return (d1.getTime() - d2.getTime());
+        });
 
         // calculate return history
-        var returnsHistory = this.returnHistory(priceHistory);
+        var returnsHistory = this.returnHistory(sorted);
 
         // calculate mean return
         var meanDailyReturn = this.meanReturn(returnsHistory);
