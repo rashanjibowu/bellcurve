@@ -42,28 +42,28 @@ dataStore.initialize(TICKER, DAYS, function(error, initialState) {
 
     updateDataStatus('OK');
 
-    data = initialState;    
+    data = initialState;
     analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
     updateProbability(probElement, analysis.probabilityOfOutcome);
 
     // update the target price
-    targetPriceElement.value = Math.round(data.targetPrice);        
+    targetPriceElement.value = Math.round(data.targetPrice);
 
     // draw the bell curve
     drawChart(
-        chart, 
-        data.currentPrice, 
-        data.targetPrice, 
-        analysis.priceDistributionHV, 
-        analysis.priceDistributionIV, 
-        analysis.expectedMoveHV, 
+        chart,
+        data.currentPrice,
+        data.targetPrice,
+        analysis.priceDistributionHV,
+        analysis.priceDistributionIV,
+        analysis.expectedMoveHV,
         analysis.expectedMoveIV
     );
 
     // draw recent daily price moves
     var expectedReturn = [-analysis.stdDailyReturn, analysis.stdDailyReturn];
     drawDailyReturnsHistory(dailyReturnChart, expectedReturn, analysis.returnsHistory, TICKER);
-    
+
     // update last move
     updateLastMove(analysis.returnsHistory[(analysis.returnsHistory.length - 1)].return, analysis.stdDailyReturn);
 });
@@ -73,7 +73,7 @@ dataStore.initialize(TICKER, DAYS, function(error, initialState) {
 // update chart
 tickerElement.addEventListener('change', function(event) {
     event.preventDefault();
-    
+
     // capture the new ticker input
     var newTicker = tickerElement.value;
 
@@ -87,7 +87,7 @@ tickerElement.addEventListener('change', function(event) {
 
         updateDataStatus('OK');
 
-        // cache updated raw data and input        
+        // cache updated raw data and input
         data.currentPrice = priceHistoryData[0].close;
         data.ticker = newTicker;
         data.priceHistory = priceHistoryData;
@@ -103,21 +103,21 @@ tickerElement.addEventListener('change', function(event) {
 
         // update chart
         drawChart(
-            chart, 
-            data.currentPrice, 
-            data.targetPrice, 
-            analysis.priceDistributionHV, 
-            analysis.priceDistributionIV, 
-            analysis.expectedMoveHV, 
+            chart,
+            data.currentPrice,
+            data.targetPrice,
+            analysis.priceDistributionHV,
+            analysis.priceDistributionIV,
+            analysis.expectedMoveHV,
             analysis.expectedMoveIV
-        );     
+        );
 
         var expectedReturn = [-analysis.stdDailyReturn, analysis.stdDailyReturn];
-        drawDailyReturnsHistory(dailyReturnChart, expectedReturn, analysis.returnsHistory, data.ticker.toUpperCase());       
+        drawDailyReturnsHistory(dailyReturnChart, expectedReturn, analysis.returnsHistory, data.ticker.toUpperCase());
 
         // update last move
         updateLastMove(analysis.returnsHistory[(analysis.returnsHistory.length - 1)].return, analysis.stdDailyReturn);
-    });    
+    });
 });
 
 // when user changes target price, update analysis and chart
@@ -132,12 +132,12 @@ targetPriceElement.addEventListener('input', function(event) {
     updateProbability(probElement, analysis.probabilityOfOutcome);
 
     drawChart(
-        chart, 
-        data.currentPrice, 
-        data.targetPrice, 
-        analysis.priceDistributionHV, 
-        analysis.priceDistributionIV, 
-        analysis.expectedMoveHV, 
+        chart,
+        data.currentPrice,
+        data.targetPrice,
+        analysis.priceDistributionHV,
+        analysis.priceDistributionIV,
+        analysis.expectedMoveHV,
         analysis.expectedMoveIV
     );
 });
@@ -155,12 +155,12 @@ daysElement.addEventListener('input', function(event) {
 
     // update chart
     drawChart(
-        chart, 
-        data.currentPrice, 
-        data.targetPrice, 
-        analysis.priceDistributionHV, 
-        analysis.priceDistributionIV, 
-        analysis.expectedMoveHV, 
+        chart,
+        data.currentPrice,
+        data.targetPrice,
+        analysis.priceDistributionHV,
+        analysis.priceDistributionIV,
+        analysis.expectedMoveHV,
         analysis.expectedMoveIV
     );
 });
@@ -174,7 +174,7 @@ function setUpChart() {
     var svg = d3.select('svg#bellCurve');
     var width = +svg.attr('width') - margin.left - margin.right;
     var height = +svg.attr('height') - margin.top - margin.bottom;
-    
+
     var g = svg.append('g')
         .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
         .classed('blend-wrapper', true);
@@ -223,7 +223,7 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
     yExtent[1] = yExtent_HV[1];
 
     var xScale = d3.scaleLinear().range([0, width]);
-    var yScale = d3.scaleLinear().range([height, 0]);    
+    var yScale = d3.scaleLinear().range([height, 0]);
 
     // line interpolater
     var line = d3.line()
@@ -328,7 +328,7 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
         .attr('stroke', 'purple')
         .classed('chart', true)
         .attr('fill', 'none');
-  
+
     // draw the expected move lines
     expectedMove_HV.forEach(function(value, index) {
         chart.append('line')
@@ -366,7 +366,7 @@ function setUpDailyReturnsChart() {
     var svg = d3.select('svg#dailyReturns');
     var width = +svg.attr('width') - margin.left - margin.right;
     var height = +svg.attr('height') - margin.top - margin.bottom;
-    
+
     var g = svg.append('g')
         .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
         .classed('blend-wrapper', true);
@@ -387,7 +387,7 @@ function setUpDailyReturnsChart() {
  * @param   {string}    ticker  Stock ticker
  * @return  {void}
  */
-function drawDailyReturnsHistory(chart, expectedReturn, returnHistory, ticker) {    
+function drawDailyReturnsHistory(chart, expectedReturn, returnHistory, ticker) {
 
     var height = chart.height;
     var width = chart.width;
@@ -413,7 +413,7 @@ function drawDailyReturnsHistory(chart, expectedReturn, returnHistory, ticker) {
 
     if (actualLength > TARGET_LENGTH) {
         data.splice(0, actualLength - TARGET_LENGTH);
-    }   
+    }
 
     // set up scale
     var xScale = d3.scaleTime()
@@ -443,7 +443,7 @@ function drawDailyReturnsHistory(chart, expectedReturn, returnHistory, ticker) {
             .attr('stroke', 'gray')
             .classed('chart', true)
             .attr('fill', 'none');
-    }); 
+    });
 
     // plot y axis
     var yAxis = d3.axisLeft(yScale)
@@ -473,7 +473,7 @@ function drawDailyReturnsHistory(chart, expectedReturn, returnHistory, ticker) {
         .attr('stroke', '#1f78b4')
         .classed('chart', true)
         .attr("d", line);
-    
+
     // add labels
     chart.append('text')
         .text('Daily '.concat(ticker, ' Returns'))
@@ -511,7 +511,7 @@ function updateDataStatus(status) {
         dataStatusIndicator.className = 'dataState indicator statusOK';
         dataStatusText.textContent = 'OK';
         dataStatusText.className = 'textOK';
-    } else {        
+    } else {
         dataStatusIndicator.className = 'dataState indicator statusError';
         dataStatusText.textContent = 'Error';
         dataStatusText.className = 'textError';
@@ -520,7 +520,7 @@ function updateDataStatus(status) {
 
 /**
  * If the market is open, show a green light. Otherwise, show a red light
- * Market is considered open if we are between the hours of 9:30am and 4:00pm ET 
+ * Market is considered open if we are between the hours of 9:30am and 4:00pm ET
  * Monday through Friday
  * @return  {void}
  */
@@ -540,8 +540,8 @@ function updateMarketStatus() {
     if (dayOfWeek > 0 && dayOfWeek < 6) {
         if (hours > 13 && hours < 20) {
             isClosed = false;
-        }          
-        
+        }
+
         if (hours == 13 && minutes >= 30) {
             isClosed = false;
         }
@@ -566,7 +566,7 @@ function updateMarketStatus() {
  */
 function updateLastMove(percentReturn, stdDailyReturn) {
     var lastMoveElement = document.getElementById('lastClose');
-    
+
     var pctRet = (percentReturn * 100).toFixed(1);
     var context = (percentReturn / stdDailyReturn).toFixed(1);
 

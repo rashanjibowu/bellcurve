@@ -31,7 +31,7 @@ DataStore.prototype.download = function(ticker, type, callback) {
     // set paths for directory and file
     var directoryPath = path.join(this.path, ticker);
     var filePath = path.join(directoryPath, type.concat('.txt'));
-    
+
     var apiKey = process.env.ALPHAVANTAGE_API_KEY;
 
     var resourceURL = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY';
@@ -53,7 +53,7 @@ DataStore.prototype.download = function(ticker, type, callback) {
 
         // check for the existence of the destination directory
         fs.access(directoryPath, fs.constants.W_OK, function(error) {
-        
+
             // if the directory does not exist, we must create it
             if (error) {
                 console.warn('Directory does not exist. Creating it...');
@@ -61,21 +61,21 @@ DataStore.prototype.download = function(ticker, type, callback) {
                     if (error) {
                         callback('Unable to create directory');
                         return;
-                    } 
+                    }
                 });
             }
-            
+
             // then we save the data to a file
             fs.writeFile(filePath, body, 'utf-8', function(error) {
                 if (error) {
                     callback(error);
                     return;
-                } else {             
+                } else {
                     callback(null);
                 }
             });
-        });        
-    });        
+        });
+    });
 };
 
 /**
@@ -86,7 +86,7 @@ DataStore.prototype.download = function(ticker, type, callback) {
 DataStore.prototype.parsePriceHistory = function(rawData) {
 
     // parse the data
-    var lines = rawData.split('\n');    
+    var lines = rawData.split('\n');
 
     var priceHistory = [];
 
@@ -102,9 +102,9 @@ DataStore.prototype.parsePriceHistory = function(rawData) {
                 close: +values[4],
                 volume: +values[5]
             });
-        }        
-    }    
-    
+        }
+    }
+
     return priceHistory;
 };
 
@@ -121,10 +121,10 @@ DataStore.prototype.retrieve = function(ticker, type, callback) {
     // set paths for directory and file
     var directoryPath = path.join(this.path, ticker);
     var filePath = path.join(directoryPath, type.concat('.txt'));
-    
+
     var self = this;
     fs.readFile(filePath, 'utf-8', function(readError, data) {
-    
+
         // if we can't read, attempt to download
         if (readError) {
             console.warn('Can\'t read. Attempting to download...');
@@ -145,7 +145,7 @@ DataStore.prototype.retrieve = function(ticker, type, callback) {
 
                     callback(null, self.parsePriceHistory(recentData));
                 });
-            });            
+            });
         } else {
             // we found the data
             // if data is old, re-download
@@ -156,7 +156,7 @@ DataStore.prototype.retrieve = function(ticker, type, callback) {
             var now = new Date();
             if (new Date(date) < (now - MILLIS_PER_DAY)) {
                 console.warn('Data looks old. Attempting to download fresh data...');
-                
+
                 self.download(ticker, type, function(downloadError) {
 
                     if (downloadError) {
@@ -178,8 +178,8 @@ DataStore.prototype.retrieve = function(ticker, type, callback) {
                 });
             } else {
                 callback(null, data);
-            }            
-        }        
+            }
+        }
     });
 };
 
@@ -213,18 +213,18 @@ DataStore.prototype.initialize = function(ticker, days, callback) {
         // assume that we are starting from a price history
         // calculate daily returns and volatility
         var returnsHistory = utils.returnHistory(priceHistory);
-    
+
         // calculate mean and standard deviation of returns
         var meanDailyReturn = utils.meanReturn(returnsHistory);
         var stdDailyReturn = utils.stdReturn(returnsHistory);
-    
+
         // since the history of returns is daily, they must be converted into annual
-        // annualize returns    
+        // annualize returns
         var meanAnnualReturn = utils.scaleReturn(meanDailyReturn, TRADING_DAYS_PER_YEAR);
-    
+
         // annualize volatility
-        var stdAnnualReturn = utils.scaleVolatility(stdDailyReturn, TRADING_DAYS_PER_YEAR);    
-    
+        var stdAnnualReturn = utils.scaleVolatility(stdDailyReturn, TRADING_DAYS_PER_YEAR);
+
         var initialState = {
             ticker: ticker,
             targetPrice: priceHistory[0].close * (1 + INITIAL_TARGET_RETURN),
@@ -237,7 +237,7 @@ DataStore.prototype.initialize = function(ticker, days, callback) {
             meanDailyReturn: meanDailyReturn,
             stdDailyReturn: stdDailyReturn
         };
-    
+
         callback(null, initialState);
     });
 };
