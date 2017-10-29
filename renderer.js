@@ -90,8 +90,11 @@ dataStore.initialize(TICKER, DAYS, function(error, initialState) {
 // when user changes ticker, retrieve/download current and historical pricing data
 // recalculate probabilities
 // update chart
-tickerElement.addEventListener('change', function(event) {
+tickerElement.addEventListener('keyup', function(event) {
     event.preventDefault();
+
+    // check for press of enter key
+    if (event.keyCode != 13 && event.code.toLowerCase() != "enter" && event.key.toLowerCase() != "enter") return;
 
     // capture the new ticker input
     var newTicker = tickerElement.value;

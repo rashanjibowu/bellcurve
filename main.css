@@ -104,6 +104,11 @@ body {
     color: #E0E0E0;
 }
 
+#ticker {
+    width: 120px;
+    text-align: center;
+}
+
 #targetPrice {
     width: 120px;
     text-align: center;

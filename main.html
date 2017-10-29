@@ -44,11 +44,7 @@
     <div class='main'>
         <h1>The Chance that...</h1>
         <div class='selections'>
-            <select id='ticker' name='ticker'>
-                <option value='COF' selected>COF</option>
-                <option value='MS'>MS</option>
-                <option value='CSCO'>CSCO</option>
-            </select>
+            <input id='ticker' type='text' name='ticker' value='COF' placeholder="ABC" />
             reaches <input id='targetPrice' type='number' name='targetPrice' value='80' placeholder='80' min='1' step='0.25' />
             in <input id='days' type='number' value='30' placeholder='30' min='1' max='90' /> days
         </div>
