@@ -273,7 +273,10 @@ DataStore.prototype.currentPrice = function(ticker, callback) {
 
         // return data on success; the first element in array is most recent price
         var intradayPriceHistory = self.parsePriceHistory(body);
-        callback(null, intradayPriceHistory[0].close);
+        callback(null, {
+            price: intradayPriceHistory[0].close,
+            timestamp: intradayPriceHistory[0].timestamp
+        });
     });
 };
 

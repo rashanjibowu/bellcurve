@@ -3,6 +3,7 @@
 const d3 = require('d3');
 const DataStore = require('./dataStore.js');
 const utils = require('./utils.js');
+const moment = require('moment');
 
 // set up a data store
 var dataStore = new DataStore();
@@ -33,6 +34,7 @@ var refreshRateElement = document.getElementById('refreshSelect');
 // configure price auto update
 let currentPriceIntervalId;
 let currentPriceInterval = MILLIS_PER_SECOND * SECONDS_PER_MINUTE;
+let refreshTime;
 
 // check the status of the market
 updateMarketStatus();
@@ -78,6 +80,9 @@ dataStore.initialize(TICKER, DAYS, function(error, initialState) {
 
     // update last move
     updateLastMove(analysis.returnsHistory[(analysis.returnsHistory.length - 1)].return, analysis.stdDailyReturn);
+
+    // update refresh time
+    updateRefreshTime();
 });
 
 // when user changes ticker, retrieve/download current and historical pricing data
@@ -631,11 +636,12 @@ function updateLastMove(percentReturn, stdDailyReturn) {
 function refreshCurrentPrice(ticker) {
 
     // do nothing if the market is closed
-    if (isMarketClosed(new Date())) {
+    var now = new Date();
+    if (isMarketClosed(now)) {
         return;
     }
 
-    dataStore.currentPrice(ticker, function(error, newCurrentPrice) {
+    dataStore.currentPrice(ticker, function(error, newData) {
 
         if (error) {
             updateDataStatus('error');
@@ -644,7 +650,8 @@ function refreshCurrentPrice(ticker) {
 
         updateDataStatus('OK');
 
-        data.currentPrice = newCurrentPrice;
+        data.currentPrice = newData.price;
+        refreshTime = new Date(newData.timestamp);
         analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
 
         // update new current price in chart
@@ -675,4 +682,15 @@ function setPriceUpdateInterval(milliseconds) {
 
     // start a new timer with new time interval
     currentPriceIntervalId = window.setInterval(refreshCurrentPrice, milliseconds, data.ticker);
+}
+
+/**
+ * Updates text to include the date of the most recent refresh of market data
+ * @param   {Date}  date    The date of the most recent refresh
+ * @return  {void}
+ */
+function updateRefreshTime() {
+    var element = document.getElementById('refreshTime');
+    var displayTime = moment(refreshTime).fromNow();
+    element.textContent = 'As of '.concat(displayTime);
 }
