@@ -1,0 +1,10 @@
+body {
+    -webkit-app-region: drag;
+    background-color: #000000;
+    color: #FFFFFF;
+    font-family: sans-serif;
+}
+
+h4, h5, h6 {
+    color: gray;
+}

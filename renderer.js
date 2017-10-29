@@ -4,6 +4,7 @@ const d3 = require('d3');
 const DataStore = require('./dataStore.js');
 const utils = require('./utils.js');
 const moment = require('moment');
+const {ipcRenderer} = require('electron');
 
 // set up a data store
 var dataStore = new DataStore();
@@ -30,6 +31,7 @@ var daysElement = document.getElementById('days');
 var probElement = document.getElementById('chance');
 var refreshButton = document.getElementById('refreshButton');
 var refreshRateElement = document.getElementById('refreshSelect');
+var logoElement = document.getElementById('logo');
 
 // configure price auto update
 let currentPriceIntervalId;
@@ -208,6 +210,11 @@ refreshRateElement.addEventListener('change', function(event) {
 
     // update the refresher
     setPriceUpdateInterval(currentPriceInterval);
+});
+
+// when user clicks logo, show the about window
+logoElement.addEventListener('click', function(event) {
+    ipcRenderer.send('show-about', 'logo was clicked');
 });
 
 /**
