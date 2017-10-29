@@ -13,7 +13,10 @@ const DAYS = 30;
 const INITIAL_TARGET_RETURN = 0.10;
 let data;
 let analysis;
-const MARKET_STATUS_CHECK_INTERVAL = 1000 * 10;
+const MILLIS_PER_SECOND = 1000;
+const SECONDS_PER_MINUTE = 60;
+const MINUTES_PER_HOUR = 60;
+const MARKET_STATUS_CHECK_INTERVAL = MILLIS_PER_SECOND * 10;
 
 // set up chart
 var chart = setUpChart();
@@ -25,6 +28,11 @@ var targetPriceElement = document.getElementById('targetPrice');
 var daysElement = document.getElementById('days');
 var probElement = document.getElementById('chance');
 var refreshButton = document.getElementById('refreshButton');
+var refreshRateElement = document.getElementById('refreshSelect');
+
+// configure price auto update
+let currentPriceIntervalId;
+let currentPriceInterval = MILLIS_PER_SECOND * SECONDS_PER_MINUTE;
 
 // check the status of the market
 updateMarketStatus();
@@ -46,6 +54,9 @@ dataStore.initialize(TICKER, DAYS, function(error, initialState) {
     data = initialState;
     analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
     updateProbability(probElement, analysis.probabilityOfOutcome);
+
+    // update the current price
+    setPriceUpdateInterval(currentPriceInterval);
 
     // update the target price
     targetPriceElement.value = Math.round(data.targetPrice);
@@ -96,6 +107,9 @@ tickerElement.addEventListener('change', function(event) {
         var newTargetPrice = Math.round(utils.updateTargetPrice(data.currentPrice, INITIAL_TARGET_RETURN));
         targetPriceElement.value = newTargetPrice;
         data.targetPrice = newTargetPrice;
+
+        // update the refresher, the new ticker is reflected in data object
+        setPriceUpdateInterval(currentPriceInterval);
 
         // update and cache analysis
         analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
@@ -169,33 +183,26 @@ daysElement.addEventListener('input', function(event) {
 // when user clicks refresh button, fetch the latest curent price for the currently active ticker
 // TODO: If a full day has passed, we may also need to update the price history
 refreshButton.addEventListener('click', function(event) {
-    console.log('Refreshing data for %s...', data.ticker);
-    refreshCurrentPrice(data.ticker, function(error, newCurrentPrice) {
+    refreshCurrentPrice(data.ticker);
+    setPriceUpdateInterval(currentPriceInterval);
+});
 
-        if (error) {
-            updateDataStatus('error');
-            return;
-        }
+// when user changes value of refresh rate, update the timer
+refreshRateElement.addEventListener('change', function(event) {
 
-        updateDataStatus('OK');
+    switch (event.target.value.toLowerCase()) {
+        case 'minute':
+            currentPriceInterval = MILLIS_PER_SECOND * SECONDS_PER_MINUTE;
+            break;
+        case 'hour':
+            currentPriceInterval = MILLIS_PER_SECOND * SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
+            break;
+        default:
+            currentPriceInterval = MILLIS_PER_SECOND;
+    }
 
-        data.currentPrice = newCurrentPrice;
-        analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
-
-        // update new current price in chart
-        drawChart(
-            chart,
-            data.currentPrice,
-            data.targetPrice,
-            analysis.priceDistributionHV,
-            analysis.priceDistributionIV,
-            analysis.expectedMoveHV,
-            analysis.expectedMoveIV
-        );
-
-        // update probability of success
-        updateProbability(probElement, analysis.probabilityOfOutcome);
-    });
+    // update the refresher
+    setPriceUpdateInterval(currentPriceInterval);
 });
 
 /**
@@ -552,23 +559,16 @@ function updateDataStatus(status) {
 }
 
 /**
- * If the market is open, show a green light. Otherwise, show a red light
- * Market is considered open if we are between the hours of 9:30am and 4:00pm ET
- * Monday through Friday
- * @return  {void}
+ * Returns whether the market is closed as of the given date
+ * @param   {Date}      date    A date to check whether the market is closed
+ * @return  {boolean}           Whether the market is closed
  */
-function updateMarketStatus() {
-
-    var marketStatusIndicator = document.getElementById('marketStatus');
-    var marketStatusText = document.getElementById('marketStatusText');
-
-    var now = new Date();
-
+function isMarketClosed(date) {
     var isClosed = true;
 
-    var dayOfWeek = now.getUTCDay();
-    var hours = now.getUTCHours();
-    var minutes = now.getUTCMinutes();
+    var dayOfWeek = date.getUTCDay();
+    var hours = date.getUTCHours();
+    var minutes = date.getUTCMinutes();
 
     if (dayOfWeek > 0 && dayOfWeek < 6) {
         if (hours > 13 && hours < 20) {
@@ -579,6 +579,22 @@ function updateMarketStatus() {
             isClosed = false;
         }
     }
+
+    return isClosed;
+}
+
+/**
+ * If the market is open, show a green light. Otherwise, show a red light
+ * Market is considered open if we are between the hours of 9:30am and 4:00pm ET
+ * Monday through Friday
+ * @return  {void}
+ */
+function updateMarketStatus() {
+
+    var marketStatusIndicator = document.getElementById('marketStatus');
+    var marketStatusText = document.getElementById('marketStatusText');
+
+    var isClosed = isMarketClosed(new Date());
 
     if (isClosed) {
         marketStatusIndicator.className = 'marketState indicator statusClosed';
@@ -607,13 +623,56 @@ function updateLastMove(percentReturn, stdDailyReturn) {
 }
 
 /**
- * Query for the current price (not the price history) for a given ticker
+ * Query for the current price (not the price history) for a given ticker and updates the UI
+ * with the new information and analysis
  * @param   {string}    ticker      Stock ticker
- * @param   {function}  callback    Function to call when execution ends
  * @return  {void}
  */
-function refreshCurrentPrice(ticker, callback) {
-    dataStore.currentPrice(ticker, function(error, currentPrice) {
-        callback(error, currentPrice);
+function refreshCurrentPrice(ticker) {
+
+    // do nothing if the market is closed
+    if (isMarketClosed(new Date())) {
+        return;
+    }
+
+    dataStore.currentPrice(ticker, function(error, newCurrentPrice) {
+
+        if (error) {
+            updateDataStatus('error');
+            return;
+        }
+
+        updateDataStatus('OK');
+
+        data.currentPrice = newCurrentPrice;
+        analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
+
+        // update new current price in chart
+        drawChart(
+            chart,
+            data.currentPrice,
+            data.targetPrice,
+            analysis.priceDistributionHV,
+            analysis.priceDistributionIV,
+            analysis.expectedMoveHV,
+            analysis.expectedMoveIV
+        );
+
+        // update probability of success
+        updateProbability(probElement, analysis.probabilityOfOutcome);
     });
+}
+
+/**
+ * Updates the refresh timer to use a new time frame
+ * @param   {number}    milliseconds    Number of milliseconds between each timer refresh
+ * @param   {void}
+ */
+function setPriceUpdateInterval(milliseconds) {
+
+    // cancel current timer
+    window.clearInterval(currentPriceIntervalId);
+
+    // start a new timer with new time interval
+    currentPriceIntervalId = window.setInterval(refreshCurrentPrice, milliseconds, data.ticker);
 }
