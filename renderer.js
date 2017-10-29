@@ -399,7 +399,31 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
                 return '#1f78b4';
             })
             .attr('fill', 'none');
+
+        chart.append('text')
+            .text('1 SD')
+            .attr('x', xScale(value))
+            .attr('y', yScale((yExtent[0] + yExtent[1] / 4 * 3)))
+            .attr('text-anchor', (index === 0) ? 'end' : 'start')
+            .attr('dx', (index === 0) ? -3 : 3)
+            .classed('chart label', true);
     });
+
+    // draw the labels
+    chart.append('text')
+        .text('Current: $'.concat(currentPrice.toFixed(2)))
+        .attr('x', xScale(currentPrice))
+        .attr('y', yScale(yExtent[1]))
+        .attr('text-anchor', 'middle')
+        .attr('dy', -3)
+        .classed('chart label current', true);
+
+    chart.append('text')
+        .text('Target')
+        .attr('x', xScale(targetPrice))
+        .attr('y', yScale((yExtent[0] + yExtent[1] / 2)))
+        .attr('dx', 3)
+        .classed('chart label target', true);
 }
 
 /**
