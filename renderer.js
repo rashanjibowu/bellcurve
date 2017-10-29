@@ -689,7 +689,6 @@ function setPriceUpdateInterval(milliseconds) {
 
 /**
  * Updates text to include the date of the most recent refresh of market data
- * @param   {Date}  date    The date of the most recent refresh
  * @return  {void}
  */
 function updateRefreshTime() {
