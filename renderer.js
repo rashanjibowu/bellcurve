@@ -667,13 +667,16 @@ function refreshCurrentPrice(ticker) {
 
         // update probability of success
         updateProbability(probElement, analysis.probabilityOfOutcome);
+
+        // update refresh time
+        updateRefreshTime();
     });
 }
 
 /**
  * Updates the refresh timer to use a new time frame
  * @param   {number}    milliseconds    Number of milliseconds between each timer refresh
- * @param   {void}
+ * @return  {void}
  */
 function setPriceUpdateInterval(milliseconds) {
 
