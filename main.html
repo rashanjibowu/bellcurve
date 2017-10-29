@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>    
+<head>
     <title>Visualizing Data with Electron!</title>
     <link rel="stylesheet" href="main.css">
 </head>
@@ -48,8 +48,8 @@
                 <option value='COF' selected>COF</option>
                 <option value='MS'>MS</option>
                 <option value='CSCO'>CSCO</option>
-            </select> 
-            reaches <input id='targetPrice' type='number' name='targetPrice' value='80' placeholder='80' min='1' step='0.25' /> 
+            </select>
+            reaches <input id='targetPrice' type='number' name='targetPrice' value='80' placeholder='80' min='1' step='0.25' />
             in <input id='days' type='number' value='30' placeholder='30' min='1' max='90' /> days
         </div>
         <p id='chance'>15%</p>
@@ -62,7 +62,7 @@
         <svg id='dailyReturns' width = '225', height = '125'></svg>
         <p id='lastClose'>Last Close: +1.8% (1.2 SD)</p>
     </div>
-    
+
     <script src="renderer.js"></script>
 </body>
 </html>
