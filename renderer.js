@@ -24,6 +24,7 @@ var tickerElement = document.getElementById('ticker');
 var targetPriceElement = document.getElementById('targetPrice');
 var daysElement = document.getElementById('days');
 var probElement = document.getElementById('chance');
+var refreshButton = document.getElementById('refreshButton');
 
 // check the status of the market
 updateMarketStatus();
@@ -163,6 +164,38 @@ daysElement.addEventListener('input', function(event) {
         analysis.expectedMoveHV,
         analysis.expectedMoveIV
     );
+});
+
+// when user clicks refresh button, fetch the latest curent price for the currently active ticker
+// TODO: If a full day has passed, we may also need to update the price history
+refreshButton.addEventListener('click', function(event) {
+    console.log('Refreshing data for %s...', data.ticker);
+    refreshCurrentPrice(data.ticker, function(error, newCurrentPrice) {
+
+        if (error) {
+            updateDataStatus('error');
+            return;
+        }
+
+        updateDataStatus('OK');
+
+        data.currentPrice = newCurrentPrice;
+        analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
+
+        // update new current price in chart
+        drawChart(
+            chart,
+            data.currentPrice,
+            data.targetPrice,
+            analysis.priceDistributionHV,
+            analysis.priceDistributionIV,
+            analysis.expectedMoveHV,
+            analysis.expectedMoveIV
+        );
+
+        // update probability of success
+        updateProbability(probElement, analysis.probabilityOfOutcome);
+    });
 });
 
 /**
@@ -570,5 +603,17 @@ function updateLastMove(percentReturn, stdDailyReturn) {
     var pctRet = (percentReturn * 100).toFixed(1);
     var context = (percentReturn / stdDailyReturn).toFixed(1);
 
-    lastMoveElement.textContent = 'Last Close: '.concat(pctRet, '% (', context , ' SD)')
+    lastMoveElement.textContent = 'Last Close: '.concat(pctRet, '% (', context , ' SD)');
+}
+
+/**
+ * Query for the current price (not the price history) for a given ticker
+ * @param   {string}    ticker      Stock ticker
+ * @param   {function}  callback    Function to call when execution ends
+ * @return  {void}
+ */
+function refreshCurrentPrice(ticker, callback) {
+    dataStore.currentPrice(ticker, function(error, currentPrice) {
+        callback(error, currentPrice);
+    });
 }
