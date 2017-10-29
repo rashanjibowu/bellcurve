@@ -2,7 +2,7 @@ body {
     margin: 0;
 }
 
-.sidebar {    
+.sidebar {
     width: 100px;
     height: 400px;
     background-color: #000000;
@@ -14,8 +14,8 @@ body {
 .main {
     width: 475px;
     height: 400px;
-    background-color: #CCCCCC;    
-    float: left;    
+    background-color: #CCCCCC;
+    float: left;
     padding: 5px;
 }
 
@@ -39,7 +39,7 @@ body {
 
 .refresh label {
     font-size: 10pt;
-    font-style: italic;    
+    font-style: italic;
 }
 
 .refresh select {
