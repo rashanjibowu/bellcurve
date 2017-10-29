@@ -242,4 +242,39 @@ DataStore.prototype.initialize = function(ticker, days, callback) {
     });
 };
 
+/**
+ * Fetches the current price of the ticker
+ * @param   {string}    ticker      Stock ticker
+ * @param   {function}  callback    Function to call when execution ends
+ * @return  {void}
+ */
+DataStore.prototype.currentPrice = function(ticker, callback) {
+
+    var apiKey = process.env.ALPHAVANTAGE_API_KEY;
+
+    var resourceURL = 'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY';
+    resourceURL = resourceURL.concat('&symbol=', ticker);
+    resourceURL = resourceURL.concat('&interval=1min');
+    resourceURL = resourceURL.concat('&apikey=', apiKey);
+    resourceURL = resourceURL.concat('&datatype=csv');
+
+    var self = this;
+
+    request(resourceURL, function(error, response, body) {
+        if (error) {
+            callback(error);
+            return;
+        }
+
+        if (response.statusCode != 200) {
+            callback('Error: '.concat(response.statusCode));
+            return;
+        }
+
+        // return data on success; the first element in array is most recent price
+        var intradayPriceHistory = self.parsePriceHistory(body);
+        callback(null, intradayPriceHistory[0].close);
+    });
+};
+
 module.exports = DataStore;
