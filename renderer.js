@@ -433,7 +433,7 @@ function drawDailyReturnsHistory(chart, expectedReturn, returnHistory, ticker) {
     // convert date formats
     var data = returnHistory.map(function(value) {
         value.date = new Date(value.date);
-        return value
+        return value;
     });
 
     // use the last 30 days
@@ -450,11 +450,11 @@ function drawDailyReturnsHistory(chart, expectedReturn, returnHistory, ticker) {
 
     // set up scale
     var xScale = d3.scaleTime()
-        .domain(d3.extent(data, function(d) { return new Date(d.date) }))
+        .domain(d3.extent(data, function(d) { return new Date(d.date); }))
         .range([0, width]);
 
     // make sure there is a zero-line and lower standard deviation line
-    var yExtent = d3.extent(data, function(d) { return d.return });
+    var yExtent = d3.extent(data, function(d) { return d.return; });
     yExtent[0] = (yExtent[0] < expectedReturn[0]) ? yExtent[0] : yExtent[0] - 0.01;
 
     var yScale = d3.scaleLinear()
@@ -470,8 +470,8 @@ function drawDailyReturnsHistory(chart, expectedReturn, returnHistory, ticker) {
             .attr('y2', yScale(value))
             .attr('stroke-width', 1)
             .attr('stroke-dasharray', function() {
-                if (value == 0) return '1, 0'
-                return '2, 5'
+                if (value === 0) return '1, 0';
+                return '2, 5';
             })
             .attr('stroke', 'gray')
             .classed('chart', true)
@@ -494,8 +494,8 @@ function drawDailyReturnsHistory(chart, expectedReturn, returnHistory, ticker) {
 
     // draw a line chart
     var line = d3.line()
-        .x(function(d) { return xScale(d.date) })
-        .y(function(d) { return yScale(d.return) });
+        .x(function(d) { return xScale(d.date); })
+        .y(function(d) { return yScale(d.return); });
 
     chart.append("path")
         .datum(data)
