@@ -38,6 +38,14 @@ let currentPriceIntervalId;
 let currentPriceInterval = MILLIS_PER_SECOND * SECONDS_PER_MINUTE;
 let refreshTime;
 
+// if user types Ctrl+Q, quit the application
+window.addEventListener('keydown', function(event) {
+    console.log(event);
+    if (event.key == 'q' && event.ctrlKey) {
+        ipcRenderer.send('close-app', 'close-app');
+    }
+});
+
 // check the status of the market
 updateMarketStatus();
 setInterval(function() {
@@ -215,8 +223,8 @@ refreshRateElement.addEventListener('change', function(event) {
     setPriceUpdateInterval(currentPriceInterval);
 });
 
-// when user clicks logo, show the about window
-logoElement.addEventListener('click', function(event) {
+// when user double clicks logo, show the about window
+logoElement.addEventListener('dblclick', function(event) {
     ipcRenderer.send('show-about', 'logo was clicked');
 });
 
