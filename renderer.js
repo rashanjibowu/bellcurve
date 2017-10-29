@@ -401,7 +401,7 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
             .attr('fill', 'none');
 
         chart.append('text')
-            .text('1 SD')
+            .text((index === 0) ? '-1 SD' : '+1 SD')
             .attr('x', xScale(value))
             .attr('y', yScale((yExtent[0] + yExtent[1] / 4 * 3)))
             .attr('text-anchor', (index === 0) ? 'end' : 'start')
