@@ -12,7 +12,10 @@ let aboutWindow;
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 850,
-        height: 400
+        height: 400,
+        title: 'Visualizing Data -- Electron',
+        resizable: false,
+        frame: false
     });
 
     mainWindow.loadURL(url.format({
@@ -21,7 +24,8 @@ function createWindow() {
         slashes: true
     }));
 
-    mainWindow.webContents.openDevTools();
+    mainWindow.setMenu(null);
+    //mainWindow.webContents.openDevTools();
 
     mainWindow.on('closed', function() {
         mainWindow = null;
@@ -58,4 +62,8 @@ app.on('ready', createWindow);
 
 ipcMain.on('show-about', function(event, arg) {
     launchCredits();
+});
+
+ipcMain.on('close-app', function(event, arg) {
+    mainWindow.close();
 });

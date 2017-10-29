@@ -1,33 +1,44 @@
+* {
+    -webkit-app-region: drag;
+}
+
+button, input, select {
+    -webkit-app-region: no-drag;
+}
+
 body {
     margin: 0;
 }
 
 .sidebar {
     width: 100px;
-    height: 400px;
+    height: 390px;
     background-color: #000000;
     float: left;
     padding: 5px;
     color: #FFFFFF;
+    margin: 0px;
 }
 
 .main {
     width: 475px;
-    height: 400px;
+    height: 390px;
     background-color: #CCCCCC;
     float: left;
     padding: 5px;
+    margin: 0px;
 }
 
 .visualization {
     width: 225px;
-    height: 400px;
+    height: 390px;
     padding: 5px;
-    border-right: 1px solid #000000;
     float: left;
+    margin: 0px;
 }
 
 .logo {
+    -webkit-app-region: no-drag;
     width: 100px;
     height: 70px;
     border: 1px solid #FFFFFF;
