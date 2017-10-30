@@ -58,7 +58,8 @@ body {
     -webkit-app-region: no-drag;
     width: 100px;
     height: 70px;
-    border: 1px solid #FFFFFF;
+    background-image: url('assets/logo/logo.png');
+    background-color: #000000;
 }
 
 .refresh {
