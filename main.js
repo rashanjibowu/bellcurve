@@ -29,6 +29,7 @@ function createWindow() {
 
     mainWindow.on('closed', function() {
         mainWindow = null;
+        aboutWindow.close();
     });
 }
 
@@ -37,7 +38,7 @@ function launchCredits() {
     if (!aboutWindow) {
         aboutWindow = new BrowserWindow({
             width: 400,
-            height: 450,
+            height: 475,
             alwaysOnTop: true,
             resizable: false,
             fullscreenable: false,
