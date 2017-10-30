@@ -659,12 +659,12 @@ function updateMarketStatus() {
  * @return  {void}
  */
 function updateLastMove(percentReturn, stdDailyReturn) {
-    var lastMoveElement = document.getElementById('lastClose');
+    var lastMoveElement = document.getElementById('lastCloseValue');
 
     var pctRet = (percentReturn * 100).toFixed(1);
     var context = (percentReturn / stdDailyReturn).toFixed(1);
 
-    lastMoveElement.textContent = 'Last Close: '.concat(pctRet, '% (', context , ' SD)');
+    lastMoveElement.textContent = pctRet.concat('% (', context , ' SD)');
 }
 
 /**
