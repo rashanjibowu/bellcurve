@@ -41,7 +41,7 @@ let refreshTime;
 // if user types Ctrl+Q, quit the application
 window.addEventListener('keydown', function(event) {
     console.log(event);
-    if (event.key == 'q' && event.ctrlKey) {
+    if ((event.key == 'q' || event.keyCode == 81) && event.ctrlKey) {
         ipcRenderer.send('close-app', 'close-app');
     }
 });
