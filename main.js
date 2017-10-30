@@ -15,7 +15,8 @@ function createWindow() {
         height: 400,
         title: 'Visualizing Data -- Electron',
         resizable: false,
-        frame: false
+        frame: false,
+        show: false
     });
 
     mainWindow.loadURL(url.format({
@@ -33,6 +34,10 @@ function createWindow() {
         if (aboutWindow) {
             aboutWindow.close();
         }
+    });
+
+    mainWindow.on('ready-to-show', function() {
+        mainWindow.show();
     });
 }
 
