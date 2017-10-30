@@ -307,7 +307,7 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
 
     // draw the x axis
     chart.append("g")
-        .classed('chart', true)
+        .classed('chart axis', true)
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(xScale))
         .select(".domain")
@@ -569,8 +569,7 @@ function drawDailyReturnsHistory(chart, expectedReturn, returnHistory, ticker) {
         .attr('fill', 'gray')
         .attr('text-anchor', 'middle')
         .classed('chart', true)
-        .style('font-size', '9pt')
-        .style('font-family', 'sans-serif');
+        .style('font-size', '9pt');
 
     chart.append('text')
         .text('Last '.concat(data.length, ' Days'))
@@ -579,8 +578,7 @@ function drawDailyReturnsHistory(chart, expectedReturn, returnHistory, ticker) {
         .attr('fill', 'gray')
         .attr('text-anchor', 'middle')
         .classed('chart', true)
-        .style('font-size', '9pt')
-        .style('font-family', 'sans-serif');
+        .style('font-size', '9pt');
 
 }
 
