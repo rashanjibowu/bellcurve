@@ -29,7 +29,10 @@ function createWindow() {
 
     mainWindow.on('closed', function() {
         mainWindow = null;
-        aboutWindow.close();
+
+        if (aboutWindow) {
+            aboutWindow.close();
+        }
     });
 }
 
