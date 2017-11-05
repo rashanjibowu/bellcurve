@@ -1,7 +1,7 @@
 {
-  "name": "visualizing_data_electron",
+  "name": "bellcurve",
   "version": "1.0.0",
-  "description": "Visualizing Data With Electron",
+  "description": "Estimate the probability of stock price movements",
   "main": "main.js",
   "scripts": {
     "start": "electron ."

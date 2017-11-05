@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Visualizing Data with Electron!</title>
+    <title>BellCurve</title>
     <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="colors.css">
 </head>
 <body>
 
     <!-- Left sidebar -->
-    <div class='sidebar'>
+    <div class='sidebar bg-base-color color-primary-4'>
 
         <!-- Logo -->
         <div class='logo' id='logo'></div>
@@ -21,7 +22,7 @@
                 <option value='hour'>Hour</option>
             </select>
 
-            <button id='refreshButton'>Refresh</button>
+            <button id='refreshButton'>Refresh Now</button>
         </div>
 
         <!-- Status Indicators -->
@@ -41,7 +42,7 @@
     </div>
 
     <!-- Main area -->
-    <div class='main'>
+    <div class='main bg-base-color'>
         <h1>The Chance that...</h1>
         <div class='selections'>
             <input id='ticker' type='text' name='ticker' value='COF' placeholder="ABC" />
@@ -53,9 +54,9 @@
     </div>
 
     <!-- Right column with visualization -->
-    <div class='visualization'>
-        <svg id='bellCurve' width = '225', height = '225'></svg>
-        <svg id='dailyReturns' width = '225', height = '125'></svg>
+    <div class='visualization bg-base-color'>
+        <svg id='bellCurve' width = '225' height = '225'></svg>
+        <svg id='dailyReturns' width = '225' height = '125'></svg>
         <p id='lastClose'>Last Close: <span id="lastCloseValue">+1.8% (1.2 SD)</span></p>
     </div>
 
