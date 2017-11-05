@@ -116,6 +116,14 @@ body {
     color: green;
 }
 
+.statusUpdating {
+    background-color: orange;
+}
+
+.textUpdating {
+    color: orange;
+}
+
 #dataStatusText, #marketStatusText {
     font-weight: bold;
 }

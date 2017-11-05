@@ -40,7 +40,6 @@ let refreshTime;
 
 // if user types Ctrl+Q, quit the application
 window.addEventListener('keydown', function(event) {
-    console.log(event);
     if ((event.key == 'q' || event.keyCode == 81) && event.ctrlKey) {
         ipcRenderer.send('close-app', 'close-app');
     }
@@ -51,6 +50,8 @@ updateMarketStatus();
 setInterval(function() {
     updateMarketStatus();
 }, MARKET_STATUS_CHECK_INTERVAL);
+
+updateDataStatus('updating');
 
 // initialize the UI with initial values
 dataStore.initialize(TICKER, DAYS, function(error, initialState) {
@@ -107,49 +108,58 @@ tickerElement.addEventListener('blur', function(event) {
     // capture the new ticker input
     var newTicker = tickerElement.value;
 
-    dataStore.retrieve(newTicker, 'priceHistory', function(priceHistoryError, priceHistoryData) {
+    updateDataStatus('updating');
 
-        if (priceHistoryError) {
-            console.error(priceHistoryError);
+    dataStore.fetch(newTicker, 'priceHistory', function(priceHistoryError, priceHistoryData) {
+
+        if (priceHistoryError || priceHistoryData.length === 0) {
             updateDataStatus('error');
             return;
         }
 
-        updateDataStatus('OK');
+        dataStore.fetch(newTicker, 'currentPrice', function(currentPriceError, currentPriceData) {
 
-        // cache updated raw data and input
-        data.currentPrice = priceHistoryData[0].close;
-        data.ticker = newTicker;
-        data.priceHistory = priceHistoryData;
+            if (currentPriceError || currentPriceData.length === 0) {
+                updateDataStatus('error');
+                return;
+            }
 
-        var newTargetPrice = Math.round(utils.updateTargetPrice(data.currentPrice, INITIAL_TARGET_RETURN));
-        targetPriceElement.value = newTargetPrice;
-        data.targetPrice = newTargetPrice;
+            updateDataStatus('OK');
 
-        // update the refresher, the new ticker is reflected in data object
-        setPriceUpdateInterval(currentPriceInterval);
+            // cache updated raw data and input
+            data.currentPrice = currentPriceData[(currentPriceData.length - 1)].close;
+            data.ticker = newTicker;
+            data.priceHistory = priceHistoryData;
 
-        // update and cache analysis
-        analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
+            var newTargetPrice = Math.round(utils.updateTargetPrice(data.currentPrice, INITIAL_TARGET_RETURN));
+            targetPriceElement.value = newTargetPrice;
+            data.targetPrice = newTargetPrice;
 
-        updateProbability(probElement, analysis.probabilityOfOutcome);
+            // update the refresher, the new ticker is reflected in data object
+            setPriceUpdateInterval(currentPriceInterval);
 
-        // update chart
-        drawChart(
-            chart,
-            data.currentPrice,
-            data.targetPrice,
-            analysis.priceDistributionHV,
-            analysis.priceDistributionIV,
-            analysis.expectedMoveHV,
-            analysis.expectedMoveIV
-        );
+            // update and cache analysis
+            analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
 
-        var expectedReturn = [-analysis.stdDailyReturn, analysis.stdDailyReturn];
-        drawDailyReturnsHistory(dailyReturnChart, expectedReturn, analysis.returnsHistory, data.ticker.toUpperCase());
+            updateProbability(probElement, analysis.probabilityOfOutcome);
 
-        // update last move
-        updateLastMove(analysis.returnsHistory[(analysis.returnsHistory.length - 1)].return, analysis.stdDailyReturn);
+            // update chart
+            drawChart(
+                chart,
+                data.currentPrice,
+                data.targetPrice,
+                analysis.priceDistributionHV,
+                analysis.priceDistributionIV,
+                analysis.expectedMoveHV,
+                analysis.expectedMoveIV
+            );
+
+            var expectedReturn = [-analysis.stdDailyReturn, analysis.stdDailyReturn];
+            drawDailyReturnsHistory(dailyReturnChart, expectedReturn, analysis.returnsHistory, data.ticker.toUpperCase());
+
+            // update last move
+            updateLastMove(analysis.returnsHistory[(analysis.returnsHistory.length - 1)].return, analysis.stdDailyReturn);
+        });
     });
 });
 
@@ -584,7 +594,7 @@ function drawDailyReturnsHistory(chart, expectedReturn, returnHistory, ticker) {
 
 /**
  * Updates UI elements to let user know whether the data was downloaded successfully
- * @param   {string} status Whether the data downloaded successfully. Either 'error' or 'ok'
+ * @param   {string} status Whether the data downloaded successfully. One of 'error', 'updating', or 'ok'
  * @return  {void}
  */
 function updateDataStatus(status) {
@@ -596,10 +606,14 @@ function updateDataStatus(status) {
         dataStatusIndicator.className = 'dataState indicator statusOK';
         dataStatusText.textContent = 'OK';
         dataStatusText.className = 'textOK';
-    } else {
+    } else if (status.toLowerCase() == 'error') {
         dataStatusIndicator.className = 'dataState indicator statusError';
         dataStatusText.textContent = 'Error';
         dataStatusText.className = 'textError';
+    } else {
+        dataStatusIndicator.className = 'dataState indicator statusUpdating';
+        dataStatusText.textContent = 'Updating...';
+        dataStatusText.className = 'textUpdating';
     }
 }
 
@@ -681,7 +695,9 @@ function refreshCurrentPrice(ticker) {
         return;
     }
 
-    dataStore.currentPrice(ticker, function(error, newData) {
+    updateDataStatus('updating');
+
+    dataStore.fetch(ticker, 'currentPrice', function(error, currentPriceData) {
 
         if (error) {
             updateDataStatus('error');
@@ -690,8 +706,8 @@ function refreshCurrentPrice(ticker) {
 
         updateDataStatus('OK');
 
-        data.currentPrice = newData.price;
-        refreshTime = new Date(newData.timestamp);
+        data.currentPrice = currentPriceData[(currentPriceData.length - 1)].close;
+        refreshTime = new Date(currentPriceData[(currentPriceData.length - 1)].timestamp);
         analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
 
         // update new current price in chart
