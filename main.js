@@ -12,10 +12,11 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         width: 850,
         height: 400,
-        title: 'Visualizing Data -- Electron',
+        title: 'BellCurve',
         resizable: false,
         frame: false,
-        show: false
+        show: false,
+        icon: path.join(__dirname, 'assets/icons/png/64x64.png')
     });
 
     mainWindow.loadURL(url.format({
@@ -44,12 +45,12 @@ function launchCredits() {
 
     if (!aboutWindow) {
         aboutWindow = new BrowserWindow({
-            width: 400,
-            height: 475,
+            width: 475,
+            height: 500,
             alwaysOnTop: true,
             resizable: false,
             fullscreenable: false,
-            title: 'About App'
+            title: 'About BellCurve'
         });
     }
 

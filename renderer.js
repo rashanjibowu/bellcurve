@@ -99,68 +99,11 @@ dataStore.initialize(TICKER, DAYS, function(error, initialState) {
 // when user changes ticker, retrieve/download current and historical pricing data
 // recalculate probabilities
 // update chart
-tickerElement.addEventListener('blur', function(event) {
-    event.preventDefault();
-
-    // download/retrieve only if the ticker is different
-    if (tickerElement.value.toLowerCase() == data.ticker.toLowerCase()) return;
-
-    // capture the new ticker input
-    var newTicker = tickerElement.value;
-
-    updateDataStatus('updating');
-
-    dataStore.fetch(newTicker, 'priceHistory', function(priceHistoryError, priceHistoryData) {
-
-        if (priceHistoryError || priceHistoryData.length === 0) {
-            updateDataStatus('error');
-            return;
-        }
-
-        dataStore.fetch(newTicker, 'currentPrice', function(currentPriceError, currentPriceData) {
-
-            if (currentPriceError || currentPriceData.length === 0) {
-                updateDataStatus('error');
-                return;
-            }
-
-            updateDataStatus('OK');
-
-            // cache updated raw data and input
-            data.currentPrice = currentPriceData[(currentPriceData.length - 1)].close;
-            data.ticker = newTicker;
-            data.priceHistory = priceHistoryData;
-
-            var newTargetPrice = Math.round(utils.updateTargetPrice(data.currentPrice, INITIAL_TARGET_RETURN));
-            targetPriceElement.value = newTargetPrice;
-            data.targetPrice = newTargetPrice;
-
-            // update the refresher, the new ticker is reflected in data object
-            setPriceUpdateInterval(currentPriceInterval);
-
-            // update and cache analysis
-            analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
-
-            updateProbability(probElement, analysis.probabilityOfOutcome);
-
-            // update chart
-            drawChart(
-                chart,
-                data.currentPrice,
-                data.targetPrice,
-                analysis.priceDistributionHV,
-                analysis.priceDistributionIV,
-                analysis.expectedMoveHV,
-                analysis.expectedMoveIV
-            );
-
-            var expectedReturn = [-analysis.stdDailyReturn, analysis.stdDailyReturn];
-            drawDailyReturnsHistory(dailyReturnChart, expectedReturn, analysis.returnsHistory, data.ticker.toUpperCase());
-
-            // update last move
-            updateLastMove(analysis.returnsHistory[(analysis.returnsHistory.length - 1)].return, analysis.stdDailyReturn);
-        });
-    });
+tickerElement.addEventListener('blur', onTickerUpdate);
+tickerElement.addEventListener('keyup', function(event) {
+    if (event.keyCode == 13) {
+        onTickerUpdate(event);
+    }
 });
 
 // when user changes target price, update analysis and chart
@@ -276,6 +219,13 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
     var width = chart.width;
     chart = chart.chartSelection;
 
+    // colors
+    const CURRENT = '#515D91';
+    const AREA = '#7B85AE';
+    const TARGET = '#07113A';
+    const BELLCURVE = '#515D91';
+    const LABEL = 'gray';
+
     // scales
     var xExtent_HV = d3.extent(data_HV, function(d) { return d.price; });
     var yExtent_HV = d3.extent(data_HV, function(d) { return d.probabilityDensity; });
@@ -347,7 +297,7 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
 
     areaGroups.append("path")
         .datum(data_HV)
-        .attr("fill", "#a6cee3")
+        .attr("fill", AREA)
         .style('opacity', opacity)
         .style('mix-blend-mode', mixBlendMode)
         .attr("d", area);
@@ -376,7 +326,7 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
         .attr("stroke-linejoin", "round")
         .attr("stroke-linecap", "round")
         .attr("stroke-width", 1.5)
-        .attr('stroke', '#1f78b4')
+        .attr('stroke', BELLCURVE)
         .classed('chart', true)
         .attr("d", line);
 
@@ -387,7 +337,8 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
         .attr('y1', yScale(yExtent[0]))
         .attr('y2', yScale(yExtent[1]))
         .attr('stroke-width', 1)
-        .attr('stroke', 'red')
+        .attr('stroke-dasharray', '2, 2')
+        .attr('stroke', CURRENT)
         .classed('chart', true)
         .attr('fill', 'none');
 
@@ -398,7 +349,7 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
         .attr('y1', yScale(yExtent[0]))
         .attr('y2', yScale(yExtent[1]))
         .attr('stroke-width', 1)
-        .attr('stroke', 'purple')
+        .attr('stroke', TARGET)
         .classed('chart', true)
         .attr('fill', 'none');
 
@@ -414,7 +365,7 @@ function drawChart(chart, currentPrice, targetPrice, data_HV, data_IV, expectedM
             .attr('stroke-dasharray', '6, 4')
             .attr('stroke', function() {
                 //if (index < 2) return '#33a02c';
-                return '#1f78b4';
+                return 'gray';
             })
             .attr('fill', 'none');
 
@@ -490,6 +441,8 @@ function drawDailyReturnsHistory(chart, expectedReturn, returnHistory, ticker) {
     var width = chart.width;
     var margin = chart.margin;
     chart = chart.chartSelection;
+
+    const RETURN_LINE = '#303D74';
 
     // remove old chart
     chart.selectAll('.chart').remove();
@@ -567,7 +520,7 @@ function drawDailyReturnsHistory(chart, expectedReturn, returnHistory, ticker) {
         .attr("stroke-linejoin", "round")
         .attr("stroke-linecap", "round")
         .attr("stroke-width", 1.5)
-        .attr('stroke', '#1f78b4')
+        .attr('stroke', RETURN_LINE)
         .classed('chart', true)
         .attr("d", line);
 
@@ -751,4 +704,73 @@ function updateRefreshTime() {
     var element = document.getElementById('refreshTime');
     var displayTime = moment(refreshTime).fromNow();
     element.textContent = 'As of '.concat(displayTime);
+}
+
+/**
+ * Handler for when user enters a new ticker
+ * @param   {Event} event   The triggering event
+ * @return  {void}
+ */
+function onTickerUpdate(event) {
+    event.preventDefault();
+
+    // download/retrieve only if the ticker is different
+    if (tickerElement.value.toLowerCase() == data.ticker.toLowerCase()) return;
+
+    // capture the new ticker input
+    var newTicker = tickerElement.value;
+
+    updateDataStatus('updating');
+
+    dataStore.fetch(newTicker, 'priceHistory', function(priceHistoryError, priceHistoryData) {
+
+        if (priceHistoryError || priceHistoryData.length === 0) {
+            updateDataStatus('error');
+            return;
+        }
+
+        dataStore.fetch(newTicker, 'currentPrice', function(currentPriceError, currentPriceData) {
+
+            if (currentPriceError || currentPriceData.length === 0) {
+                updateDataStatus('error');
+                return;
+            }
+
+            updateDataStatus('OK');
+
+            // cache updated raw data and input
+            data.currentPrice = currentPriceData[(currentPriceData.length - 1)].close;
+            data.ticker = newTicker;
+            data.priceHistory = priceHistoryData;
+
+            var newTargetPrice = Math.round(utils.updateTargetPrice(data.currentPrice, INITIAL_TARGET_RETURN));
+            targetPriceElement.value = newTargetPrice;
+            data.targetPrice = newTargetPrice;
+
+            // update the refresher, the new ticker is reflected in data object
+            setPriceUpdateInterval(currentPriceInterval);
+
+            // update and cache analysis
+            analysis = utils.analyze(data.currentPrice, data.targetPrice, data.days, data.priceHistory);
+
+            updateProbability(probElement, analysis.probabilityOfOutcome);
+
+            // update chart
+            drawChart(
+                chart,
+                data.currentPrice,
+                data.targetPrice,
+                analysis.priceDistributionHV,
+                analysis.priceDistributionIV,
+                analysis.expectedMoveHV,
+                analysis.expectedMoveIV
+            );
+
+            var expectedReturn = [-analysis.stdDailyReturn, analysis.stdDailyReturn];
+            drawDailyReturnsHistory(dailyReturnChart, expectedReturn, analysis.returnsHistory, data.ticker.toUpperCase());
+
+            // update last move
+            updateLastMove(analysis.returnsHistory[(analysis.returnsHistory.length - 1)].return, analysis.stdDailyReturn);
+        });
+    });
 }
