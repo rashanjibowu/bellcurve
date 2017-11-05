@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>    
-    <title>Visualizing Data with Electron!</title>
+<head>
+    <title>BellCurve</title>
     <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="colors.css">
 </head>
 <body>
 
     <!-- Left sidebar -->
-    <div class='sidebar'>
+    <div class='sidebar bg-base-color color-primary-4'>
 
         <!-- Logo -->
-        <div class='logo'>LOGO</div>
+        <div class='logo' id='logo'></div>
 
         <!-- Refresh -->
         <div class='refresh'>
@@ -21,15 +22,15 @@
                 <option value='hour'>Hour</option>
             </select>
 
-            <button id='refreshButton'>Refresh</button>
+            <button id='refreshButton'>Refresh Now</button>
         </div>
 
         <!-- Status Indicators -->
         <div class='status'>
             <!-- Market State -->
             <div class='marketState'>
-                <div class='marketState indicator'></div>
-                <p>Market: <span id='marketStatus'>Closed</span></p>
+                <div class='marketState indicator' id='marketStatus'></div>
+                <p>Market: <span id='marketStatusText'></span></p>
             </div>
 
             <!-- Data State -->
@@ -41,15 +42,11 @@
     </div>
 
     <!-- Main area -->
-    <div class='main'>
+    <div class='main bg-base-color'>
         <h1>The Chance that...</h1>
         <div class='selections'>
-            <select id='ticker' name='ticker'>
-                <option value='COF' selected>COF</option>
-                <option value='MS'>MS</option>
-                <option value='CSCO'>CSCO</option>
-            </select> 
-            reaches <input id='targetPrice' type='number' name='targetPrice' value='80' placeholder='80' min='1' step='0.25' /> 
+            <input id='ticker' type='text' name='ticker' value='COF' placeholder="ABC" />
+            reaches <input id='targetPrice' type='number' name='targetPrice' value='80' placeholder='80' min='1' step='0.25' />
             in <input id='days' type='number' value='30' placeholder='30' min='1' max='90' /> days
         </div>
         <p id='chance'>15%</p>
@@ -57,12 +54,12 @@
     </div>
 
     <!-- Right column with visualization -->
-    <div class='visualization'>
-        <svg id='bellCurve' width = '225', height = '300'></svg>
-        <svg id='dailyReturns' width = '225', height = '70'></svg>
-        <p id='lastClose'>Last Close: +1.8% (1.2 SD)</p>
+    <div class='visualization bg-base-color'>
+        <svg id='bellCurve' width = '225' height = '225'></svg>
+        <svg id='dailyReturns' width = '225' height = '125'></svg>
+        <p id='lastClose'>Last Close: <span id="lastCloseValue">+1.8% (1.2 SD)</span></p>
     </div>
-    
+
     <script src="renderer.js"></script>
 </body>
 </html>

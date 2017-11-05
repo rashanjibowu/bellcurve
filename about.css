@@ -1,0 +1,38 @@
+@font-face {
+    font-family: 'Raleway-Regular';
+    src: url('assets/fonts/raleway/Raleway-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Raleway-SemiBold';
+    src: url('assets/fonts/raleway/Raleway-SemiBold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Catamaran-ExtraBold';
+    src: url('assets/fonts/catamaran/Catamaran-ExtraBold.ttf') format('truetype');
+}
+
+body {
+    -webkit-app-region: drag;
+    font-family: 'Raleway-Regular', sans-serif;
+    overflow: hidden;
+}
+
+h4, h5 {
+    font-family: 'Catamaran-ExtraBold', sans-serif;
+    margin: 0;
+}
+
+h4 {
+    color: #804B15;
+}
+
+h5 {
+    color: #105E27;
+}
+
+span {
+    font-weight: bold;
+    color: #172457;
+}

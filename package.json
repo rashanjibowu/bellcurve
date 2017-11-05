@@ -1,19 +1,23 @@
 {
-  "name": "visualizing_data_electron",
+  "name": "bellcurve",
   "version": "1.0.0",
-  "description": "Visualizing Data With Electron",
+  "description": "Estimate the probability of stock price movements",
+  "productName": "BellCurve",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon_white_text.png.icns --prune=true --out=release-builds",
+    "package-linux": "electron-packager . BellCurve --overwrite --asar=true --platform=linux --arch=x64 --icon=assets/icons/png/1024x1024.png --prune=true --out=release-builds",
+    "build": "npm run package-mac && npm run package-linux"
   },
   "author": "Rashan Jibowu",
   "license": "MIT",
   "dependencies": {
     "d3": "^4.11.0",
-    "dotenv": "^4.0.0",
     "electron": "^1.7.8",
     "jStat": "^1.7.0",
     "mathjs": "^3.16.4",
+    "moment": "^2.19.1",
     "request": "^2.83.0"
   }
 }

@@ -1,5 +1,6 @@
 /node_modules
 *.log
-*.env
 /wireframes
 todo.txt
+**/*.xcf
+/release-builds

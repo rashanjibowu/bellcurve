@@ -27,30 +27,30 @@ module.exports = {
      * @param   {number}    days    The number of days to consider
      * @return  {array}             Array of objects used to draw the probability density curve
      */
-    returnDistribution: function(mean, sigma, days) {        
-    
+    returnDistribution: function(mean, sigma, days) {
+
         // mean is assumed to be an annualized return
         // we need to scale the return to reflect the number of days provided
         mean = Math.pow(1 + mean, days / 365) - 1;
         mean = 0;
-    
+
         // sigma is assumed to be an annualized volatility
         // we need to scale the volatility to reflect the number of days provided
         sigma = sigma * Math.sqrt(days / 365);
-    
+
         var data = [];
         var minX = mean - 3 * sigma;
         var maxX = mean + 3 * sigma;
         var incr = (maxX - minX) / 100;
-    
-        for (var i = minX; i <= maxX; i = i + incr) {        
-    
+
+        for (var i = minX; i <= maxX; i = i + incr) {
+
             data.push({
                 probabilityDensity: jStat.normal.pdf(i, mean, sigma),
                 observation: i
             });
         }
-    
+
         // return sorted data
         return data;
     },
@@ -70,22 +70,19 @@ module.exports = {
 
     /**
      * Returns the daily returns from a time series of prices
+     * Assumes the price history is in ascending date order
      * @param   {array}  priceHistory    Array of objects containing the price history as a time series
      * @return  {array}                  Array of objects containing a history of returns
      */
-    returnHistory: function(priceHistory) {  
-
-        // sort: make sure we are in ascending time order
-        priceHistory = priceHistory.sort(function(a, b) {
-            return b.timestamp - a.timestamp
-        });
+    returnHistory: function(priceHistory) {
 
         return priceHistory.map(function(value, index, array) {
-            var r = {};
-            r.date = new Date(value.timestamp).toISOString();
+            var r = {
+                date: value.timestamp
+            };
 
-            if (index == 0) {
-                r.return = 0
+            if (index === 0) {
+                r.return = 0;
             } else {
                 // current / previous - 1
                 r.return = array[index].close / array[(index - 1)].close - 1;
@@ -113,7 +110,7 @@ module.exports = {
      * @return  {number}                Periodic return
      */
     scaleReturn: function(dailyReturn, days) {
-        return Math.pow(dailyReturn + 1, days) - 1;   
+        return Math.pow(dailyReturn + 1, days) - 1;
     },
 
     /**
@@ -160,7 +157,7 @@ module.exports = {
         // find the return implied by the target price
         var impliedReturn = this.impliedReturn(currentPrice, targetPrice);
 
-        // use cumulative probability function to determine the probability that 
+        // use cumulative probability function to determine the probability that
         // the return will take on the implied return value
         var prob = jStat.normal.cdf(impliedReturn, mean, volatility);
 
@@ -181,8 +178,15 @@ module.exports = {
      */
     analyze: function(currentPrice, targetPrice, days, priceHistory) {
 
+        // sort in ascending order
+        var sorted = priceHistory.sort(function(a, b) {
+            var d1 = new Date(a.timestamp);
+            var d2 = new Date(b.timestamp);
+            return (d1.getTime() - d2.getTime());
+        });
+
         // calculate return history
-        var returnsHistory = this.returnHistory(priceHistory);
+        var returnsHistory = this.returnHistory(sorted);
 
         // calculate mean return
         var meanDailyReturn = this.meanReturn(returnsHistory);
@@ -191,7 +195,7 @@ module.exports = {
         // calculate historical volatility
         var stdDailyReturn = this.stdReturn(returnsHistory);
         var stdAnnualReturn = this.scaleVolatility(stdDailyReturn, TRADING_DAYS_PER_YEAR);
-        var stdPeriodicReturn = this.scaleVolatility(stdDailyReturn, days);        
+        var stdPeriodicReturn = this.scaleVolatility(stdDailyReturn, days);
 
         // returns are normally distributed
         var distributionOfReturns_HV = this.returnDistribution(meanAnnualReturn, stdAnnualReturn, days);
@@ -202,7 +206,7 @@ module.exports = {
         // calculate expected moves
         var expectedMove_HV = this.expectedMove(currentPrice, stdAnnualReturn, days);
 
-        // prob of outcome        
+        // prob of outcome
         var pos = this.probabilityOfOutcome(currentPrice, targetPrice, 0, stdPeriodicReturn);
 
         return {
@@ -210,7 +214,9 @@ module.exports = {
             priceDistributionIV: null,
             expectedMoveHV: expectedMove_HV,
             expectedMoveIV: null,
-            probabilityOfOutcome: pos
+            probabilityOfOutcome: pos,
+            stdDailyReturn: stdDailyReturn,
+            returnsHistory: returnsHistory
         };
     },
 
