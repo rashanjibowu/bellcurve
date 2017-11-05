@@ -2,6 +2,7 @@
   "name": "bellcurve",
   "version": "1.0.0",
   "description": "Estimate the probability of stock price movements",
+  "productName": "BellCurve",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
